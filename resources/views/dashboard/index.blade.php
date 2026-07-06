@@ -15,9 +15,12 @@
             </div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Selamat datang, <span x-text="userName"></span>!</h2>
             <p class="text-gray-500 text-sm mb-6">Pantau perkembangan anak Anda melalui laporan kegiatan.</p>
-            <div class="flex gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
                 <a href="/laporan" class="btn-pink">Lihat Laporan Kegiatan</a>
                 <a href="/notifikasi" class="btn-blue">Notifikasi</a>
+                <a href="https://wa.me/6281234567890?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20anak%20saya" target="_blank" rel="noopener noreferrer" class="btn-blue">
+                    Hubungi Sekolah via WhatsApp
+                </a>
             </div>
         </div>
     </template>
@@ -237,10 +240,9 @@ function dashboard() {
 
         // Admin
         adminStats: [
-            { label: 'Total Murid',   value: 0, icon: '👨‍🎓', color: '#EFC9EA' },
-            { label: 'Total Kelas',   value: 0, icon: '🏫',   color: '#C2DFF4' },
-            { label: 'Total Guru',    value: 0, icon: '👩‍🏫', color: '#9FD4A0' },
-            { label: 'Laporan Aktif', value: 0, icon: '📋',   color: '#F4A9A8' },
+            { label: 'Total Murid', value: 0, icon: '👨‍🎓', color: '#EFC9EA' },
+            { label: 'Total Kelas', value: 0, icon: '🏫',   color: '#C2DFF4' },
+            { label: 'Total Guru',  value: 0, icon: '👩‍🏫', color: '#9FD4A0' },
         ],
         kelasList: [], artikelTerbaru: [], laporanTerbaru: [],
 

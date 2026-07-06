@@ -102,7 +102,7 @@
                     <div class="flex gap-4 mt-1">
                         <template x-for="r in ['admin','guru','orang_tua']" :key="r">
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" :value="r" x-model="form.roles" class="rounded">
+                                <input type="radio" name="roles" :value="r" x-model="form.roles" class="rounded-full">
                                 <span class="text-sm text-gray-700" x-text="r"></span>
                             </label>
                         </template>
@@ -138,8 +138,8 @@ function usersPage() {
         get filtered(){ return this.items.filter(i=>i.nama?.toLowerCase().includes(this.search.toLowerCase())||i.email?.toLowerCase().includes(this.search.toLowerCase())); },
 
         async init(){ const r=await api.get('/users'); this.loading=false; if(r?.ok){this.items=r.data.data?.data||[];this.meta=r.data.data;} },
-        openModal(){ this.editId=null; this.form={nama:'',email:'',no_hp:'',status:'aktif',password:'',password_confirmation:'',roles:[]}; this.showModal=true; },
-        editItem(item){ this.editId=item.id_user; this.form={nama:item.nama||'',email:item.email,no_hp:item.no_hp||'',status:item.status,password:'',password_confirmation:'',roles:item.roles?.map(r=>r.nama_role)||[]}; this.showModal=true; },
+        openModal(){ this.editId=null; this.form={nama:'',email:'',no_hp:'',status:'aktif',password:'',password_confirmation:'',roles:''}; this.showModal=true; },
+        editItem(item){ this.editId=item.id_user; this.form={nama:item.nama||'',email:item.email,no_hp:item.no_hp||'',status:item.status,password:'',password_confirmation:'',roles:(item.roles?.[0]?.nama_role)||''}; this.showModal=true; },
         confirmDelete(item){ this.deleteId=item.id_user; this.showDelete=true; },
         async save(){
             this.saving=true;

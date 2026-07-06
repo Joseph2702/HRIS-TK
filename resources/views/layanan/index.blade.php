@@ -49,6 +49,9 @@
                 <div class="flex-1 min-w-0">
                     <p class="font-semibold text-gray-800 text-sm" x-text="item.judul_artikel"></p>
                     <p class="text-xs text-gray-400 mt-0.5 line-clamp-2" x-text="item.konten_artikel"></p>
+                    <div class="mt-2">
+                        <a :href="'/layanan/'+item.id_artikel" class="text-xs text-blue-600 hover:underline">Lihat detail</a>
+                    </div>
                 </div>
                 <div class="flex gap-2 shrink-0" x-show="canCreate">
                     <button @click="editItem(item)" class="text-teal-500 hover:text-teal-700">

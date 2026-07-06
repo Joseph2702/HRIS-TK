@@ -41,6 +41,9 @@ class UserService
     {
         return DB::transaction(function () use ($data) {
             $roleNames = $data['roles'] ?? [];
+            if (is_string($roleNames)) {
+                $roleNames = [$roleNames];
+            }
             unset($data['roles'], $data['spesialisasi'], $data['pekerjaan']);
 
             $data['password'] = Hash::make($data['password']);
@@ -67,6 +70,9 @@ class UserService
         return DB::transaction(function () use ($id, $data) {
             $user = $this->getById($id);
             $roleNames = $data['roles'] ?? null;
+            if (is_string($roleNames)) {
+                $roleNames = [$roleNames];
+            }
             unset($data['roles']);
 
             if (! empty($data['password'])) {

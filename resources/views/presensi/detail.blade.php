@@ -29,12 +29,6 @@
                 </svg>
                 Tambah
             </button>
-            <button @click="editMode = !editMode" class="btn-blue">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                Edit
-            </button>
             <button @click="simpanPresensi()" class="btn-green" :disabled="saving">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -92,15 +86,6 @@
                                         title="Description laporan kegiatan">
                                     Description
                                 </button>
-
-                                {{-- Edit murid --}}
-                                <template x-if="editMode">
-                                    <button @click="openEditMurid(m)" class="text-teal-500 hover:text-teal-700" title="Edit Murid">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                        </svg>
-                                    </button>
-                                </template>
                             </div>
                         </td>
                     </tr>
@@ -178,7 +163,6 @@ function presensiDetail() {
         muridList: [],
         loading: true,
         saving: false,
-        editMode: false,
         showEditMurid: false,
         showTambahMurid: false,
         savingMurid: false,

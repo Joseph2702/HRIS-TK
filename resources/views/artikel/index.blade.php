@@ -50,11 +50,14 @@
                 <div class="flex-1 min-w-0">
                     <p class="font-semibold text-gray-800 text-sm" x-text="item.judul_artikel"></p>
                     <p class="text-xs text-gray-400 mt-0.5 line-clamp-2" x-text="item.konten_artikel"></p>
-                    <div class="flex items-center gap-2 mt-1.5">
-                        <span class="text-xs text-gray-400" x-text="item.pembuat?.nama"></span>
-                        <span class="text-gray-200">•</span>
-                        <span class="text-xs text-gray-400" x-text="formatDate(item.tanggal_publish)"></span>
-                        <span :class="item.status_artikel==='published'?'badge-green':'badge-gray'" x-text="item.status_artikel"></span>
+                    <div class="flex items-center justify-between gap-2 mt-2">
+                        <a :href="'/artikel/'+item.id_artikel" class="text-xs text-blue-600 hover:underline">Lihat detail</a>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400" x-text="item.pembuat?.nama"></span>
+                            <span class="text-gray-200">•</span>
+                            <span class="text-xs text-gray-400" x-text="formatDate(item.tanggal_publish)"></span>
+                            <span :class="item.status_artikel==='published'?'badge-green':'badge-gray'" x-text="item.status_artikel"></span>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">

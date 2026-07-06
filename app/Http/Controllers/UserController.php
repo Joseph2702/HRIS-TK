@@ -29,8 +29,7 @@ class UserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'no_hp' => 'nullable|string|max:20',
             'jenis_kelamin' => 'nullable|in:laki-laki,perempuan',
-            'roles' => 'required|array|min:1',
-            'roles.*' => 'string|in:admin,guru,orang_tua',
+            'roles' => 'required|string|in:admin,guru,orang_tua',
             'spesialisasi' => 'nullable|string|max:100',
             'pekerjaan' => 'nullable|string|max:100',
         ]);
@@ -48,8 +47,7 @@ class UserController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'no_hp'    => 'nullable|string|max:20',
             'status'   => 'nullable|in:aktif,nonaktif',
-            'roles'    => 'sometimes|array',
-            'roles.*'  => 'string|in:admin,guru,orang_tua',
+            'roles'    => 'sometimes|string|in:admin,guru,orang_tua',
         ]);
 
         $user = $this->service->update($id, $request->all());

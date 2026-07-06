@@ -59,10 +59,7 @@
                                         <th class="text-left">Tanggal</th>
                                         <th class="text-left">Topik</th>
                                         <th class="text-left">Jam</th>
-                                        <th class="text-center">Hadir</th>
-                                        <th class="text-center">Tidak Hadir</th>
-                                        <th class="text-center">Izin</th>
-                                        <th class="text-center">Sakit</th>
+                                        <th class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -71,10 +68,9 @@
                                             <td class="font-medium" x-text="formatTanggal(jadwal.tanggal)"></td>
                                             <td x-text="jadwal.topik || 'Tanpa topik'"></td>
                                             <td x-text="(jadwal.jam_mulai || '-') + ' – ' + (jadwal.jam_selesai || '-')" class="text-sm text-gray-600"></td>
-                                            <td class="text-center"><span class="badge-green" x-text="jadwal.hadir_count || 0"></span></td>
-                                            <td class="text-center"><span class="badge-red" x-text="jadwal.tidak_hadir_count || 0"></span></td>
-                                            <td class="text-center"><span class="badge-yellow" x-text="jadwal.izin_count || 0"></span></td>
-                                            <td class="text-center"><span class="badge-gray" x-text="jadwal.sakit_count || 0"></span></td>
+                                            <td class="text-center">
+                                                <button @click="showDetail(jadwal)" class="btn-blue py-1 px-3 text-xs">Detail</button>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -85,6 +81,46 @@
             </div>
         </div>
     </div>
+
+    <div x-show="showDetailModal" class="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/30" @click="showDetailModal=false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl p-6 overflow-y-auto max-h-[90vh]" @click.stop>
+            <div class="flex items-start justify-between gap-3 mb-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800" x-text="detailJadwal ? detailJadwal.topik || 'Detail Presensi' : 'Detail Presensi'"></h3>
+                    <p class="text-xs text-gray-500" x-text="detailJadwal ? formatTanggal(detailJadwal.tanggal) + ' · ' + (detailJadwal.jam_mulai || '-') + ' – ' + (detailJadwal.jam_selesai || '-') : ''"></p>
+                </div>
+                <button @click="showDetailModal=false" class="text-gray-500 hover:text-gray-700">Tutup</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="aluna-table w-full">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Nama Murid</th>
+                            <th class="text-center">Status Kehadiran</th>
+                            <th class="text-left">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-if="detailRows.length === 0">
+                            <tr><td colspan="4" class="text-center py-8 text-gray-400">Tidak ada data presensi tersedia.</td></tr>
+                        </template>
+                        <template x-for="(row, idx) in detailRows" :key="row.id_murid">
+                            <tr>
+                                <td x-text="idx + 1"></td>
+                                <td x-text="row.nama_murid"></td>
+                                <td class="text-center">
+                                    <span :class="row.presensi?.status_kehadiran === 'hadir' ? 'badge-green' : 'badge-red'" x-text="row.presensi?.status_kehadiran || 'tidak hadir'"></span>
+                                </td>
+                                <td x-text="row.presensi?.keterangan || '-'" class="text-left"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -92,6 +128,9 @@ function presensiHistoryPage() {
     return {
         kelasList: [], selectedClassId: null, selectedKelas: null,
         jadwalList: [], loading: true, search: '', fromDate: '', toDate: '',
+        showDetailModal: false,
+        detailRows: [],
+        detailJadwal: null,
 
         get filteredHistory() {
             const keyword = this.search.toLowerCase();
@@ -158,13 +197,22 @@ function presensiHistoryPage() {
                     ...jadwal,
                     hadir_count:       presensiRows.filter(p => p.status_kehadiran === 'hadir').length,
                     tidak_hadir_count: presensiRows.filter(p => p.status_kehadiran === 'tidak_hadir').length,
-                    izin_count:        presensiRows.filter(p => p.status_kehadiran === 'izin').length,
-                    sakit_count:       presensiRows.filter(p => p.status_kehadiran === 'sakit').length,
                 });
             }
 
             this.jadwalList = result.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
             this.loading = false;
+        },
+
+        async showDetail(jadwal) {
+            this.detailJadwal = jadwal;
+            this.showDetailModal = true;
+            this.detailRows = [];
+
+            const pr = await api.get(`/jadwal/${jadwal.id_jadwal}/presensi`);
+            if (pr?.ok) {
+                this.detailRows = pr.data.data || [];
+            }
         },
 
         formatTanggal(d) {
@@ -177,15 +225,11 @@ function presensiHistoryPage() {
             }
 
             const rows = [
-                ['Tanggal', 'Topik', 'Jam', 'Hadir', 'Tidak Hadir', 'Izin', 'Sakit'],
+                ['Tanggal', 'Topik', 'Jam'],
                 ...this.filteredHistory.map(jadwal => [
                     this.formatTanggal(jadwal.tanggal),
                     jadwal.topik || 'Tanpa topik',
                     `${jadwal.jam_mulai || '-'} – ${jadwal.jam_selesai || '-'}`,
-                    jadwal.hadir_count || 0,
-                    jadwal.tidak_hadir_count || 0,
-                    jadwal.izin_count || 0,
-                    jadwal.sakit_count || 0,
                 ]),
             ];
 
