@@ -39,16 +39,25 @@
                 </div>
 
                 {{-- Permission list --}}
-                <div class="space-y-1.5 text-sm text-gray-600">
-                    <template x-if="!role.permissions?.length">
-                        <p class="text-gray-400 text-xs">Tidak ada permission</p>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase tracking-[0.18em] text-gray-400">Hak Akses</span>
+                        <span class="text-xs text-gray-500" x-text="role.permissionIds?.length + ' akses'"></span>
+                    </div>
+                    <template x-if="!permissions.length">
+                        <p class="text-gray-400 text-xs">Loading hak akses...</p>
                     </template>
-                    <template x-for="p in role.permissions||[]" :key="p.id_permission">
-                        <div class="flex items-center gap-2">
-                            <input type="checkbox" checked disabled class="rounded opacity-50">
-                            <span x-text="p.nama_permission"></span>
-                        </div>
+                    <template x-for="permission in permissions" :key="permission.id_permission">
+                        <label class="flex items-center gap-2 rounded-xl border p-2 hover:border-teal-200 cursor-pointer">
+                            <input type="checkbox" :value="permission.id_permission" x-model="role.permissionIds" class="rounded text-teal-600 focus:ring-teal-400">
+                            <span x-text="permission.nama_permission"></span>
+                        </label>
                     </template>
+                    <div class="flex justify-end pt-2">
+                        <button @click="savePermissions(role)" class="btn-teal text-sm">
+                            <span x-text="savingRole===role.id_role ? 'Menyimpan...' : 'Simpan Hak Akses'"></span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -94,25 +103,86 @@
 <script>
 function rolesPage() {
     return {
-        items:[], loading:true, showModal:false, showDelete:false,
-        editId:null, deleteId:null, saving:false,
-        form:{nama_role:'', is_active:true},
+        items: [], permissions: [], loading: true, showModal: false, showDelete: false,
+        editId: null, deleteId: null, saving: false, savingRole: null,
+        form: { nama_role: '', is_active: true },
 
-        async init(){ const r=await api.get('/roles'); this.loading=false; if(r?.ok) this.items=r.data.data||[]; },
-        openModal(){ this.editId=null; this.form={nama_role:'',is_active:true}; this.showModal=true; },
-        editItem(role){ this.editId=role.id_role; this.form={nama_role:role.nama_role,is_active:role.is_active}; this.showModal=true; },
-        confirmDelete(role){ this.deleteId=role.id_role; this.showDelete=true; },
-        async save(){
-            this.saving=true;
-            const r=this.editId?await api.put(`/roles/${this.editId}`,this.form):await api.post('/roles',this.form);
-            this.saving=false;
-            if(r?.ok){this.showModal=false;Alpine.store('notif').success(this.editId?'Role diperbarui':'Role ditambahkan');const rr=await api.get('/roles');if(rr?.ok)this.items=rr.data.data||[];}
-            else Alpine.store('notif').error(r?.data?.message||'Gagal menyimpan');
+        async init() {
+            const r = await api.get('/roles');
+            this.loading = false;
+            if (r?.ok) {
+                const payload = r.data.data || {};
+                this.permissions = payload.permissions || [];
+                this.items = (payload.roles || []).map(role => ({
+                    ...role,
+                    permissionIds: (role.permissions || []).map(p => p.id_permission),
+                }));
+            }
         },
-        async deleteItem(){
-            const r=await api.del(`/roles/${this.deleteId}`); this.showDelete=false;
-            if(r?.ok){Alpine.store('notif').success('Role berhasil dihapus');this.items=this.items.filter(i=>i.id_role!==this.deleteId);}
-            else Alpine.store('notif').error(r?.data?.message||'Gagal menghapus');
+
+        openModal() {
+            this.editId = null;
+            this.form = { nama_role: '', is_active: true };
+            this.showModal = true;
+        },
+
+        editItem(role) {
+            this.editId = role.id_role;
+            this.form = { nama_role: role.nama_role, is_active: role.is_active };
+            this.showModal = true;
+        },
+
+        confirmDelete(role) {
+            this.deleteId = role.id_role;
+            this.showDelete = true;
+        },
+
+        async save() {
+            this.saving = true;
+            const r = this.editId
+                ? await api.put(`/roles/${this.editId}`, this.form)
+                : await api.post('/roles', this.form);
+            this.saving = false;
+            if (r?.ok) {
+                this.showModal = false;
+                Alpine.store('notif').success(this.editId ? 'Role diperbarui' : 'Role ditambahkan');
+                const rr = await api.get('/roles');
+                if (rr?.ok) {
+                    const payload = rr.data.data || {};
+                    this.permissions = payload.permissions || [];
+                    this.items = (payload.roles || []).map(role => ({
+                        ...role,
+                        permissionIds: (role.permissions || []).map(p => p.id_permission),
+                    }));
+                }
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal menyimpan');
+            }
+        },
+
+        async savePermissions(role) {
+            this.savingRole = role.id_role;
+            const r = await api.post(`/roles/${role.id_role}/permissions`, { permission_ids: role.permissionIds || [] });
+            this.savingRole = null;
+            if (r?.ok) {
+                Alpine.store('notif').success('Akses role berhasil diperbarui');
+                const updated = r.data.data;
+                role.permissions = updated.permissions || [];
+                role.permissionIds = (role.permissions || []).map(p => p.id_permission);
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal memperbarui akses');
+            }
+        },
+
+        async deleteItem() {
+            const r = await api.del(`/roles/${this.deleteId}`);
+            this.showDelete = false;
+            if (r?.ok) {
+                Alpine.store('notif').success('Role berhasil dihapus');
+                this.items = this.items.filter(i => i.id_role !== this.deleteId);
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal menghapus');
+            }
         },
     };
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Service;
 
 use App\Common\Exception\BusinessException;
+use App\Domain\Entity\Permission;
 use App\Domain\Entity\Role;
 use App\Domain\Entity\User;
 use App\Domain\Enums\RoleType;
@@ -93,7 +94,12 @@ class UserService
 
     public function getRoles(): \Illuminate\Database\Eloquent\Collection
     {
-        return Role::all();
+        return Role::with('permissions')->get();
+    }
+
+    public function getAllPermissions(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Permission::all();
     }
 
     public function createRole(array $data): Role

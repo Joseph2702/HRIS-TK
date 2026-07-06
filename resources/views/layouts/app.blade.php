@@ -75,7 +75,7 @@
                 Dashboard
             </a>
 
-            <a href="/artikel" class="sidebar-link" :class="{active: isActive('/artikel')}">
+            <a href="/artikel" class="sidebar-link" :class="{active: isActive('/artikel'), 'opacity-40 cursor-not-allowed pointer-events-none': !hasPermission('artikel.view')}">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -83,17 +83,15 @@
                 Tentang Sekolah
             </a>
 
-            <template x-if="hasRole('admin') || hasRole('guru')">
-                <a href="/presensi" class="sidebar-link" :class="{active: isActive('/presensi')}">
-                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    Presensi
-                </a>
-            </template>
+            <a href="/presensi" class="sidebar-link" :class="{active: isActive('/presensi'), 'opacity-40 cursor-not-allowed pointer-events-none': !hasPermission('presensi.view')}">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Presensi
+            </a>
 
-            <a href="/laporan" class="sidebar-link" :class="{active: isActive('/laporan')}">
+            <a href="/laporan" class="sidebar-link" :class="{active: isActive('/laporan'), 'opacity-40 cursor-not-allowed pointer-events-none': !hasPermission('laporan.view')}">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -142,16 +140,16 @@
                 Pengaturan Profil
             </a>
 
-            <template x-if="hasRole('admin')">
+            <template x-if="hasRole('admin') || hasPermission('user.manage') || hasPermission('role.manage')">
                 <div class="space-y-0.5">
-                    <a href="/users" class="sidebar-link" :class="{active: isActive('/users')}">
+                    <a href="/users" class="sidebar-link" :class="{active: isActive('/users'), 'opacity-40 cursor-not-allowed pointer-events-none': !hasPermission('user.manage')}">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                         Manajemen Pengguna
                     </a>
-                    <a href="/roles" class="sidebar-link" :class="{active: isActive('/roles')}">
+                    <a href="/roles" class="sidebar-link" :class="{active: isActive('/roles'), 'opacity-40 cursor-not-allowed pointer-events-none': !hasPermission('role.manage')}">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -197,6 +195,7 @@ function sidebar() {
 
         isActive(path) { return window.location.pathname === path || window.location.pathname.startsWith(path + '/') || window.location.pathname.startsWith(path + '?'); },
         hasRole(role)  { return (user.roles || []).includes(role); },
+        hasPermission(permission) { return this.hasRole('admin') || (user.permissions || []).includes(permission); },
 
         async logout() {
             await api.post('/auth/logout');

@@ -3,6 +3,7 @@
 namespace App\Http\Service;
 
 use App\Common\Exception\BusinessException;
+use App\Domain\Entity\Permission;
 use App\Domain\Entity\User;
 use App\Http\Repository\UserRepository;
 use Illuminate\Support\Facades\Hash;
@@ -54,12 +55,23 @@ class AuthService
 
     public function me(User $user): array
     {
-        $user->load(['roles', 'guru', 'orangTua']);
+        $user->load(['roles.permissions', 'guru', 'orangTua']);
         return $this->formatUser($user);
     }
 
     private function formatUser(User $user): array
     {
+        $user->loadMissing(['roles.permissions']);
+        $permissions = $user->roles
+            ->flatMap(fn($role) => $role->permissions->pluck('nama_permission'))
+            ->unique();
+
+        if ($user->roles->pluck('nama_role')->contains('admin')) {
+            $permissions = Permission::pluck('nama_permission')->unique();
+        }
+
+        $permissions = $permissions->values();
+
         return [
             'id_user' => $user->id_user,
             'nama' => $user->nama,
@@ -69,6 +81,7 @@ class AuthService
             'foto_profile' => $user->foto_profile,
             'status' => $user->status,
             'roles' => $user->roles->pluck('nama_role'),
+            'permissions' => $permissions,
         ];
     }
 }

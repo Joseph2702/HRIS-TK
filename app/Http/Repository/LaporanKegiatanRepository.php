@@ -28,12 +28,18 @@ class LaporanKegiatanRepository
             ->paginate($perPage);
     }
 
-    public function findByOrangTua(int $orangTuaId, int $perPage = 15): LengthAwarePaginator
+    public function findByOrangTua(int $orangTuaId, int $perPage = 15, ?int $muridId = null): LengthAwarePaginator
     {
-        return LaporanKegiatan::with(['murid', 'guru.user', 'jadwal.kelas', 'balasan'])
-            ->whereHas('murid', fn($q) => $q->where('id_orang_tua', $orangTuaId))
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $query = LaporanKegiatan::with(['murid', 'guru.user', 'jadwal.kelas', 'balasan'])
+            ->whereHas('murid', function ($q) use ($orangTuaId, $muridId) {
+                $q->where('id_orang_tua', $orangTuaId);
+                if ($muridId !== null) {
+                    $q->where('id_murid', $muridId);
+                }
+            })
+            ->orderByDesc('created_at');
+
+        return $query->paginate($perPage);
     }
 
     public function create(array $data): LaporanKegiatan

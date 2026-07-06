@@ -7,6 +7,7 @@ Route::get('/login', fn() => view('auth.login'))->name('login');
 Route::get('/dashboard', fn() => view('dashboard.index'));
 Route::get('/artikel', fn() => view('artikel.index'));
 Route::get('/presensi', fn() => view('presensi.index'));
+Route::get('/presensi/history', fn() => view('presensi.history'));
 Route::get('/presensi/detail', fn() => view('presensi.detail'));
 Route::get('/presensi/laporan', fn() => view('presensi.laporan-murid'));
 Route::get('/laporan', fn() => view('laporan.index'));

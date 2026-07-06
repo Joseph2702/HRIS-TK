@@ -85,6 +85,14 @@
                         </td>
                         <td class="text-center">
                             <div class="flex items-center justify-center gap-2">
+                                {{-- Description laporan kegiatan --}}
+                                <button @click="openLaporan(m)"
+                                        :disabled="!jadwalId"
+                                        class="rounded-full border border-indigo-200 px-3 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Description laporan kegiatan">
+                                    Description
+                                </button>
+
                                 {{-- Edit murid --}}
                                 <template x-if="editMode">
                                     <button @click="openEditMurid(m)" class="text-teal-500 hover:text-teal-700" title="Edit Murid">
@@ -273,6 +281,21 @@ function presensiDetail() {
                 Alpine.store('notif').success('Murid berhasil ditambahkan');
                 await this.loadMurid();
             } else Alpine.store('notif').error(r?.data?.message || 'Gagal menambahkan murid');
+        },
+
+        openLaporan(m) {
+            if (!this.jadwalId) {
+                Alpine.store('notif').error('Pilih tanggal dengan jadwal kelas terlebih dahulu');
+                return;
+            }
+
+            const url = new URL(window.location.origin + '/presensi/laporan');
+            url.searchParams.set('murid_id', m.id_murid);
+            url.searchParams.set('nama', m.nama_murid);
+            url.searchParams.set('kelas_id', this.kelasId);
+            url.searchParams.set('jadwal_id', this.jadwalId);
+            url.searchParams.set('tanggal', this.tanggal);
+            window.location.href = url.toString();
         },
 
         hitungUmur(tgl) {

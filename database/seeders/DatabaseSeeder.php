@@ -38,6 +38,8 @@ class DatabaseSeeder extends Seeder
             Permission::firstOrCreate(['nama_permission' => $p]);
         }
 
+        $adminRole->permissions()->sync(Permission::pluck('id_permission')->toArray());
+
         // ─── KELAS ─────────────────────────────────────────────
         $kelasA = Kelas::firstOrCreate(['nama_kelas' => 'Kuncup Anyelir'], ['deskripsi' => 'Kelas usia 3-4 tahun']);
         $kelasB = Kelas::firstOrCreate(['nama_kelas' => 'Kuncup Mawar'],   ['deskripsi' => 'Kelas usia 4-5 tahun']);

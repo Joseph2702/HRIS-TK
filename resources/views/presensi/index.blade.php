@@ -47,7 +47,7 @@
                             <div class="flex items-center justify-center gap-3">
 
                                 {{-- Icon Report: Riwayat Presensi --}}
-                                <button @click="lihatRiwayat(item)"
+                                <button @click="window.location.href='/presensi/history?kelas_id='+item.id_kelas"
                                         class="text-indigo-400 hover:text-indigo-600 transition-colors"
                                         title="Riwayat Presensi">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,68 +106,6 @@
         </div>
     </div>
 
-    {{-- Modal Riwayat Presensi --}}
-    <div x-show="showRiwayat" class="fixed inset-0 z-40 flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/40" @click="showRiwayat=false"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col" @click.stop>
-            <div class="p-5 border-b border-gray-100 flex items-center justify-between">
-                <div>
-                    <h3 class="font-bold text-gray-800">Riwayat Presensi</h3>
-                    <p class="text-sm text-gray-400 mt-0.5" x-text="selectedKelas?.nama_kelas"></p>
-                </div>
-                <button @click="showRiwayat=false" class="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-5">
-                <template x-if="loadingRiwayat">
-                    <p class="text-center text-gray-400 py-8 text-sm">Memuat riwayat...</p>
-                </template>
-                <template x-if="!loadingRiwayat && riwayatList.length === 0">
-                    <p class="text-center text-gray-400 py-8 text-sm">Belum ada riwayat presensi untuk kelas ini</p>
-                </template>
-                <div class="space-y-3">
-                    <template x-for="jadwal in riwayatList" :key="jadwal.id_jadwal">
-                        <div class="rounded-xl border border-gray-100 overflow-hidden">
-                            {{-- Header jadwal --}}
-                            <div class="px-4 py-3 flex items-center justify-between" style="background:rgba(194,223,244,0.3)">
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-800" x-text="formatTanggal(jadwal.tanggal)"></p>
-                                    <p class="text-xs text-gray-500 mt-0.5" x-text="(jadwal.topik||'Tanpa topik') + ' · ' + (jadwal.jam_mulai||'') + '–' + (jadwal.jam_selesai||'')"></p>
-                                </div>
-                                <div class="flex gap-3 text-xs">
-                                    <span class="badge-green" x-text="(jadwal.hadir_count||0) + ' hadir'"></span>
-                                    <span class="badge-red"   x-text="(jadwal.tidak_hadir_count||0) + ' tidak hadir'"></span>
-                                    <span class="badge-yellow" x-text="(jadwal.izin_count||0) + ' izin'"></span>
-                                    <span class="badge-gray"   x-text="(jadwal.sakit_count||0) + ' sakit'"></span>
-                                </div>
-                            </div>
-                            {{-- Detail murid --}}
-                            <template x-if="jadwal.presensi && jadwal.presensi.length > 0">
-                                <table class="w-full text-xs">
-                                    <tbody>
-                                        <template x-for="p in jadwal.presensi" :key="p.id_presensi">
-                                            <tr class="border-t border-gray-50">
-                                                <td class="px-4 py-2 text-gray-700" x-text="p.murid?.nama_murid"></td>
-                                                <td class="px-4 py-2 text-center">
-                                                    <span :class="{
-                                                        'badge-green':  p.status_kehadiran==='hadir',
-                                                        'badge-red':    p.status_kehadiran==='tidak_hadir',
-                                                        'badge-yellow': p.status_kehadiran==='izin',
-                                                        'badge-gray':   p.status_kehadiran==='sakit',
-                                                    }" x-text="p.status_kehadiran?.replace('_',' ')"></span>
-                                                </td>
-                                                <td class="px-4 py-2 text-gray-400" x-text="p.keterangan||'-'"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </template>
-                        </div>
-                    </template>
-                </div>
-            </div>
-        </div>
-    </div>
-
     {{-- Confirm Hapus Kelas --}}
     <div x-show="showDelete" class="fixed inset-0 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40" @click="showDelete=false"></div>
@@ -185,9 +123,8 @@
 function presensiPage() {
     return {
         items: [], loading: true, search: '', saving: false,
-        showModal: false, showDelete: false, showRiwayat: false,
-        deleteId: null, selectedKelas: null,
-        riwayatList: [], loadingRiwayat: false,
+        showModal: false, showDelete: false,
+        deleteId: null,
         form: { nama_kelas: '' },
 
         get filtered() {
@@ -206,45 +143,6 @@ function presensiPage() {
         },
 
         confirmDelete(item) { this.deleteId = item.id_kelas; this.showDelete = true; },
-
-        // Riwayat presensi: ambil semua jadwal + presensi-nya
-        async lihatRiwayat(item) {
-            this.selectedKelas = item;
-            this.riwayatList = [];
-            this.loadingRiwayat = true;
-            this.showRiwayat = true;
-
-            // Ambil semua jadwal kelas ini
-            const jr = await api.get(`/kelas/${item.id_kelas}/jadwal`);
-            if (!jr?.ok) { this.loadingRiwayat = false; return; }
-
-            const jadwalList = jr.data.data || [];
-
-            // Untuk setiap jadwal, ambil presensinya
-            const result = [];
-            for (const jadwal of jadwalList) {
-                const pr = await api.get(`/jadwal/${jadwal.id_jadwal}/presensi`);
-                const presensiRows = (pr?.data?.data || []).map(p => p.presensi ? {
-                    id_presensi:       p.presensi.id_presensi,
-                    murid:             { nama_murid: p.nama_murid },
-                    status_kehadiran:  p.presensi.status_kehadiran,
-                    keterangan:        p.presensi.keterangan,
-                } : null).filter(Boolean);
-
-                result.push({
-                    ...jadwal,
-                    presensi:          presensiRows,
-                    hadir_count:       presensiRows.filter(p => p.status_kehadiran === 'hadir').length,
-                    tidak_hadir_count: presensiRows.filter(p => p.status_kehadiran === 'tidak_hadir').length,
-                    izin_count:        presensiRows.filter(p => p.status_kehadiran === 'izin').length,
-                    sakit_count:       presensiRows.filter(p => p.status_kehadiran === 'sakit').length,
-                });
-            }
-
-            // Urutkan terbaru dulu
-            this.riwayatList = result.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-            this.loadingRiwayat = false;
-        },
 
         async save() {
             this.saving = true;

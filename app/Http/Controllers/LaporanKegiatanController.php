@@ -12,11 +12,12 @@ class LaporanKegiatanController extends Controller
 {
     public function __construct(private LaporanKegiatanService $service) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
+        $muridId = $request->query('murid_id');
 
-        return ApiResponse::success($this->service->getAll($user));
+        return ApiResponse::success($this->service->getAll($user, $muridId ? intval($muridId) : null));
     }
 
     public function show(int $id): JsonResponse

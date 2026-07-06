@@ -23,14 +23,19 @@ class LaporanKegiatanService
         private NotifikasiRepository      $notifRepo,
     ) {}
 
-    public function getAll(User $user): \Illuminate\Pagination\LengthAwarePaginator
+    public function getAll(User $user, ?int $muridId = null): \Illuminate\Pagination\LengthAwarePaginator
     {
         if ($user->hasRole('orang_tua')) {
             $orangTua = $this->orangTuaRepo->findByUserId($user->id_user);
             if (! $orangTua) {
                 throw new BusinessException('Profil orang tua tidak ditemukan', 404);
             }
-            return $this->repo->findByOrangTua($orangTua->id_orang_tua);
+
+            return $this->repo->findByOrangTua($orangTua->id_orang_tua, 15, $muridId);
+        }
+
+        if ($muridId !== null) {
+            return $this->repo->findByMurid($muridId);
         }
 
         return $this->repo->findAll();

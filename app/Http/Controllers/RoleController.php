@@ -13,7 +13,10 @@ class RoleController extends Controller
 
     public function index(): JsonResponse
     {
-        return ApiResponse::success($this->service->getRoles());
+        return ApiResponse::success([
+            'roles' => $this->service->getRoles(),
+            'permissions' => $this->service->getAllPermissions(),
+        ]);
     }
 
     public function store(Request $request): JsonResponse
