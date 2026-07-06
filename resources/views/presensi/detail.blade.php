@@ -23,7 +23,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button @click="openTambahMurid()" class="btn-pink">
+            <button x-show="isAdmin" @click="openTambahMurid()" class="btn-pink">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -132,20 +132,45 @@
         <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6" @click.stop>
             <h3 class="font-bold text-gray-800 mb-5">Tambah Murid ke Kelas</h3>
             <form @submit.prevent="saveTambahMurid()" class="space-y-4">
-                <div><label class="label">Nama Murid</label><input type="text" x-model="tambahForm.nama_murid" class="input" required></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="label">Jenis Kelamin</label>
-                        <select x-model="tambahForm.jenis_kelamin" class="input">
-                            <option value="laki-laki">Laki-laki</option>
-                            <option value="perempuan">Perempuan</option>
-                        </select>
+                <div class="relative">
+                    <label class="label">Cari Orang Tua</label>
+                    <input type="text"
+                           x-model="parentSearch"
+                           @focus="showParentDropdown = true"
+                           @input="tambahForm.id_orang_tua = ''; tambahForm.id_murid = ''; showParentDropdown = true"
+                           class="input"
+                           placeholder="Cari nama orang tua..."
+                           autocomplete="off">
+                    <div x-show="showParentDropdown && filteredParents.length > 0"
+                         @click.away="showParentDropdown = false"
+                         class="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
+                        <template x-for="parent in filteredParents" :key="parent.id_orang_tua">
+                            <button type="button"
+                                    @click="selectParent(parent)"
+                                    class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100">
+                                <span x-text="parent.nama_orang_tua"></span>
+                            </button>
+                        </template>
                     </div>
-                    <div><label class="label">Tanggal Lahir</label><input type="date" x-model="tambahForm.tanggal_lahir" class="input"></div>
                 </div>
+
+                <div>
+                    <label class="label">Nama Anak</label>
+                    <select x-model="tambahForm.id_murid" class="input" :disabled="!tambahForm.id_orang_tua">
+                        <option value="">-- Pilih Anak --</option>
+                        <template x-for="child in childOptions" :key="child.id_murid">
+                            <option :value="child.id_murid"
+                                    x-text="child.nama_murid + (child.kelas?.nama_kelas ? ' (' + child.kelas.nama_kelas + ')' : '')"></option>
+                        </template>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Hanya anak yang belum terdaftar di kelas manapun yang muncul di sini.</p>
+                </div>
+                <template x-if="tambahForm.id_orang_tua && childOptions.length === 0">
+                    <p class="text-sm text-gray-500">Orang tua ini tidak memiliki anak yang belum terdaftar di kelas manapun.</p>
+                </template>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" @click="showTambahMurid=false" class="btn-salmon">Batal</button>
-                    <button type="submit" class="btn-green" :disabled="savingMurid" x-text="savingMurid?'Menyimpan...':'Simpan'"></button>
+                    <button type="submit" class="btn-green" :disabled="savingMurid || !tambahForm.id_murid" x-text="savingMurid?'Menyimpan...':'Simpan'"></button>
                 </div>
             </form>
         </div>
@@ -155,6 +180,7 @@
 <script>
 function presensiDetail() {
     const kelasId = new URLSearchParams(location.search).get('kelas_id') || location.pathname.split('/').pop();
+    const user = api.getUser() || {};
     return {
         kelasId: kelasId,
         namaKelas: '',
@@ -165,10 +191,28 @@ function presensiDetail() {
         saving: false,
         showEditMurid: false,
         showTambahMurid: false,
+        showParentDropdown: false,
         savingMurid: false,
         editMuridId: null,
         editMuridForm: { nama_murid: '', jenis_kelamin: 'laki-laki', tanggal_lahir: '', status_murid: 'aktif' },
-        tambahForm: { nama_murid: '', jenis_kelamin: 'laki-laki', tanggal_lahir: '' },
+        tambahForm: { id_orang_tua: '', id_murid: '' },
+        parentSearch: '',
+        parents: [],
+        allMurid: [],
+        get isAdmin() { return (user.roles || []).includes('admin'); },
+        get filteredParents() {
+            const search = this.parentSearch.toLowerCase();
+            return this.parents.filter(p => p.nama_orang_tua.toLowerCase().includes(search));
+        },
+        get eligibleChildren() {
+            return this.allMurid.filter(m =>
+                m.id_kelas == null || m.id_kelas === '' || m.id_kelas === 0 || m.id_kelas === '0'
+            );
+        },
+        get childOptions() {
+            if (!this.tambahForm.id_orang_tua) return [];
+            return this.eligibleChildren.filter(m => String(m.id_orang_tua) === String(this.tambahForm.id_orang_tua));
+        },
 
         async init() {
             // Load kelas info
@@ -252,19 +296,64 @@ function presensiDetail() {
         },
 
         openTambahMurid() {
-            this.tambahForm = { nama_murid: '', jenis_kelamin: 'laki-laki', tanggal_lahir: '' };
+            this.parentSearch = '';
+            this.tambahForm = { id_orang_tua: '', id_murid: '' };
             this.showTambahMurid = true;
+            if (this.parents.length === 0) {
+                this.loadParentOptions();
+            }
+        },
+
+        async loadParentOptions() {
+            const r = await api.get('/murid');
+            if (!r?.ok) {
+                this.parents = [];
+                this.allMurid = [];
+                return;
+            }
+
+            const result = r.data.data;
+            this.allMurid = Array.isArray(result)
+                ? result
+                : (result?.data || []);
+
+            const map = new Map();
+            for (const m of this.allMurid) {
+                const orangTua = m.orang_tua;
+                const user = orangTua?.user;
+                if (!orangTua || !user) continue;
+                const id = orangTua.id_orang_tua;
+                if (!map.has(id)) {
+                    map.set(id, { id_orang_tua: id, nama_orang_tua: user.nama });
+                }
+            }
+            this.parents = Array.from(map.values()).sort((a, b) => a.nama_orang_tua.localeCompare(b.nama_orang_tua));
+        },
+
+        selectParent(parent) {
+            this.tambahForm.id_orang_tua = parent.id_orang_tua;
+            this.parentSearch = parent.nama_orang_tua;
+            this.tambahForm.id_murid = '';
+            this.showParentDropdown = false;
         },
 
         async saveTambahMurid() {
             this.savingMurid = true;
-            const r = await api.post('/murid', { ...this.tambahForm, id_kelas: parseInt(kelasId) });
+            if (!this.tambahForm.id_orang_tua || !this.tambahForm.id_murid) {
+                Alpine.store('notif').error('Pilih orang tua dan anak terlebih dahulu');
+                this.savingMurid = false;
+                return;
+            }
+
+            const r = await api.post(`/murid/${this.tambahForm.id_murid}/kelas`, { id_kelas: parseInt(kelasId) });
             this.savingMurid = false;
             if (r?.ok) {
                 this.showTambahMurid = false;
-                Alpine.store('notif').success('Murid berhasil ditambahkan');
+                Alpine.store('notif').success('Murid berhasil ditambahkan ke kelas');
                 await this.loadMurid();
-            } else Alpine.store('notif').error(r?.data?.message || 'Gagal menambahkan murid');
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal menambahkan murid');
+            }
         },
 
         openLaporan(m) {

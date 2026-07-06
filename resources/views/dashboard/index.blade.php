@@ -18,9 +18,6 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
                 <a href="/laporan" class="btn-pink">Lihat Laporan Kegiatan</a>
                 <a href="/notifikasi" class="btn-blue">Notifikasi</a>
-                <a href="https://wa.me/6281234567890?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20anak%20saya" target="_blank" rel="noopener noreferrer" class="btn-blue">
-                    Hubungi Sekolah via WhatsApp
-                </a>
             </div>
         </div>
     </template>

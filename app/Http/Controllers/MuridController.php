@@ -30,7 +30,7 @@ class MuridController extends Controller
     {
         $request->validate([
             'nama_murid' => 'required|string|max:100',
-            'id_kelas' => 'required|integer|exists:kelas,id_kelas',
+            'id_kelas' => 'nullable|integer|exists:kelas,id_kelas',
             'tanggal_lahir' => 'nullable|date',
             'jenis_kelamin' => 'nullable|in:laki-laki,perempuan',
             'foto_murid' => 'nullable|image|max:2048',
@@ -44,6 +44,17 @@ class MuridController extends Controller
         );
 
         return ApiResponse::created($murid, 'Profil murid berhasil ditambahkan');
+    }
+
+    public function assignKelas(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'id_kelas' => 'required|integer|exists:kelas,id_kelas',
+        ]);
+
+        $murid = $this->service->assignKelas($id, (int)$request->input('id_kelas'));
+
+        return ApiResponse::success($murid, 'Murid berhasil ditambahkan ke kelas');
     }
 
     public function update(Request $request, int $id): JsonResponse

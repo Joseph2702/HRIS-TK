@@ -186,15 +186,6 @@
                         <input type="date" x-model="anakForm.tanggal_lahir" class="input">
                     </div>
                 </div>
-                <div>
-                    <label class="label">Kelas</label>
-                    <select x-model="anakForm.id_kelas" class="input">
-                        <option value="">-- Pilih Kelas --</option>
-                        <template x-for="k in kelasList" :key="k.id_kelas">
-                            <option :value="k.id_kelas" x-text="k.nama_kelas"></option>
-                        </template>
-                    </select>
-                </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" @click="showEditAnak=false" class="btn-salmon">Batal</button>
                     <button type="submit" class="btn-green" :disabled="savingAnak"
@@ -298,11 +289,17 @@ function profilPage() {
 
         async saveAnak() {
             this.savingAnak = true;
+            const payload = {
+                nama_murid: this.anakForm.nama_murid,
+                jenis_kelamin: this.anakForm.jenis_kelamin,
+                tanggal_lahir: this.anakForm.tanggal_lahir,
+            };
+
             let r;
             if (this.editAnakId) {
-                r = await api.post(`/murid/${this.editAnakId}`, this.anakForm);
+                r = await api.post(`/murid/${this.editAnakId}`, payload);
             } else {
-                r = await api.post('/murid', this.anakForm);
+                r = await api.post('/murid', payload);
             }
             this.savingAnak = false;
 

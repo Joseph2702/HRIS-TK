@@ -90,4 +90,18 @@ class MuridService
 
         $this->repo->delete($murid);
     }
+
+    public function assignKelas(int $id, int $kelasId): Murid
+    {
+        $murid = $this->repo->findById($id);
+        if (! $murid) {
+            throw new BusinessException('Murid tidak ditemukan', 404);
+        }
+
+        if ($murid->id_kelas !== null) {
+            throw new BusinessException('Murid sudah terdaftar di kelas lain', 422);
+        }
+
+        return $this->repo->update($murid, ['id_kelas' => $kelasId]);
+    }
 }

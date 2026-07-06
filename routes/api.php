@@ -39,6 +39,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('murid/{id}', [MuridController::class, 'show']);
     Route::post('murid', [MuridController::class, 'store'])->middleware('role:orang_tua');
     Route::post('murid/{id}', [MuridController::class, 'update'])->middleware('role:orang_tua');
+    Route::post('murid/{id}/kelas', [MuridController::class, 'assignKelas'])->middleware('role:admin');
     Route::delete('murid/{id}', [MuridController::class, 'destroy'])->middleware('role:orang_tua');
 
     // Kelas (Admin only untuk CRUD, semua bisa lihat)
