@@ -162,4 +162,28 @@ class LaporanKegiatanService
 
         return $balasan;
     }
+
+    public function getTrendData(User $user, ?int $klasId = null, ?int $muridId = null, ?string $fromDate = null, ?string $toDate = null): array
+    {
+        // For parent: can only see their own child's data
+        if ($user->hasRole('orang_tua')) {
+            $orangTua = $this->orangTuaRepo->findByUserId($user->id_user);
+            if (! $orangTua) {
+                throw new BusinessException('Profil orang tua tidak ditemukan', 404);
+            }
+
+            // Parents can have multiple children: aggregate across ALL their children
+            $muridList = $this->muridRepo->findByOrangTua($orangTua->id_orang_tua);
+            if ($muridList->isEmpty()) {
+                return [];
+            }
+
+            $muridIds = $muridList->pluck('id_murid')->filter()->values()->all();
+            return $this->repo->aggregateByDateForMuridIds($klasId, $muridIds, $fromDate, $toDate);
+        }
+
+        return $this->repo->aggregateByDate($klasId, $muridId, $fromDate, $toDate);
+
+    }
 }
+

@@ -84,6 +84,20 @@
             <form @submit.prevent="save()" class="space-y-4">
                 <div><label class="label">Judul Laporan</label><input type="text" x-model="form.judul_laporan" class="input" required></div>
                 <div><label class="label">Isi Laporan</label><textarea x-model="form.isi_laporan" class="input h-28 resize-none" style="border-radius:1rem"></textarea></div>
+                <div>
+                    <label class="label">Indikator Penilaian</label>
+                    <select x-model="form.indikator" class="input">
+                        <option value="">-- Pilih Indikator --</option>
+                        <option value="BB">BB — Belum Berkembang</option>
+                        <option value="MB">MB — Mulai Berkembang</option>
+                        <option value="BSH">BSH — Berkembang Sesuai Harapan</option>
+                        <option value="BSB">BSB — Berkembang Sangat Baik</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label">Catatan Indikator (opsional)</label>
+                    <input type="text" x-model="form.indikator_catatan" class="input" placeholder="Catatan singkat untuk indikator">
+                </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" @click="showModal=false" class="btn-salmon">Batal</button>
                     <button type="submit" class="btn-green" :disabled="saving" x-text="saving?'Menyimpan...':'Simpan'"></button>
@@ -105,7 +119,10 @@
                 </p>
             </div>
             <div class="flex-1 overflow-y-auto p-5">
-                <p class="text-sm text-gray-700 mb-5" x-text="detail?.isi_laporan||'-'"></p>
+                        <p class="text-sm text-gray-700 mb-3" x-text="detail?.isi_laporan||'-'"></p>
+                        <template x-if="detail?.indikator">
+                            <p class="text-sm font-semibold mt-2" x-text="'Indikator: ' + detail.indikator + (detail.indikator_catatan ? ' · ' + detail.indikator_catatan : '')"></p>
+                        </template>
                 <h4 class="font-semibold text-sm text-gray-700 mb-3">Balasan</h4>
                 <div class="space-y-3 mb-4">
                     <template x-if="!detail?.balasan?.length">
@@ -156,7 +173,7 @@ function laporanPage() {
         showModal:false, showDetail:false, showDelete:false,
         editMode: false,
         detail:null, deleteIds:[], saving:false, sendingBalasan:false,
-        form:{judul_laporan:'', isi_laporan:''}, balasanText:'',
+        form:{judul_laporan:'', isi_laporan:'', indikator:'', indikator_catatan:''}, balasanText:'',
         canCreate:(user.roles||[]).some(r=>['admin','guru'].includes(r)),
         canDelete:(user.roles||[]).some(r=>['admin','guru'].includes(r)),
         toggleEdit(){ this.editMode=!this.editMode; if(!this.editMode) this.selected=[]; },

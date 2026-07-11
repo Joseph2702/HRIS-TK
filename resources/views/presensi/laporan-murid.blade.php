@@ -49,6 +49,42 @@
                           :disabled="!editMode && !!existingId"></textarea>
             </div>
 
+            <div class="flex items-center gap-4">
+                <div>
+                    <label class="label">Indikator Penilaian</label>
+                    <select x-model="form.indikator" class="input" :disabled="!editMode && !!existingId">
+                        <option value="">-- Pilih Indikator --</option>
+                        <option value="BB">BB — Belum Berkembang</option>
+                        <option value="MB">MB — Mulai Berkembang</option>
+                        <option value="BSH">BSH — Berkembang Sesuai Harapan</option>
+                        <option value="BSB">BSB — Berkembang Sangat Baik</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label class="label">Catatan Indikator (opsional)</label>
+                    <input type="text" x-model="form.indikator_catatan" class="input" placeholder="Catatan singkat untuk indikator" :disabled="!editMode && !!existingId">
+                </div>
+            </div>
+
+            {{-- Tampilkan indikator di bawah description saat view mode --}}
+            <template x-if="!editMode && !!existingId">
+                <div class="pt-1">
+                    <template x-if="form.indikator">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold text-gray-700 mb-1">Indikator:</p>
+                                <p class="text-xs inline-block px-2 py-1 rounded-full text-white" :class="{
+                                    'bg-gray-500': form.indikator==='BB',
+                                    'bg-yellow-500': form.indikator==='MB',
+                                    'bg-green-500': form.indikator==='BSH',
+                                    'bg-blue-600': form.indikator==='BSB'
+                                }" x-text="form.indikator + ' · ' + (form.indikator_catatan || '')"></p>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
             <div class="flex items-center gap-6 flex-wrap">
                 <div class="flex items-center gap-3">
                     <span class="text-sm text-gray-600 font-medium">Untuk :</span>
@@ -84,6 +120,14 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-800" x-text="l.judul_laporan"></p>
                                 <p class="text-xs text-gray-400 mt-0.5" x-text="formatDate(l.created_at)"></p>
+                                <template x-if="l.indikator">
+                                    <p class="text-xs mt-2 inline-block px-2 py-1 rounded-full text-white text-[11px]" :class="{
+                                        'bg-gray-500': l.indikator==='BB',
+                                        'bg-yellow-500': l.indikator==='MB',
+                                        'bg-green-500': l.indikator==='BSH',
+                                        'bg-blue-600': l.indikator==='BSB'
+                                    }" x-text="l.indikator + ' · ' + (l.indikator_catatan || '')"></p>
+                                </template>
                             </div>
                             <span class="badge-pink text-xs shrink-0" x-text="`${l.balasan?.length||0} balas`"></span>
                         </div>
@@ -108,7 +152,7 @@ function laporanMurid() {
         guruList: [],
         orangTuaList: [],
         riwayat: [],
-        form: { judul_laporan: '', isi_laporan: '', id_guru: '', id_orang_tua: '' },
+        form: { judul_laporan: '', isi_laporan: '', id_guru: '', id_orang_tua: '', indikator: '', indikator_catatan: '' },
 
         async init() {
             // Load guru list
@@ -151,6 +195,8 @@ function laporanMurid() {
             this.existingId = l.id_laporan;
             this.form.judul_laporan = l.judul_laporan;
             this.form.isi_laporan = l.isi_laporan || '';
+            this.form.indikator = l.indikator || '';
+            this.form.indikator_catatan = l.indikator_catatan || '';
             this.editMode = false;
         },
 
@@ -166,6 +212,8 @@ function laporanMurid() {
                 id_jadwal:    this.jadwalId ? parseInt(this.jadwalId) : null,
                 judul_laporan: this.form.judul_laporan,
                 isi_laporan:  this.form.isi_laporan,
+                indikator: this.form.indikator || null,
+                indikator_catatan: this.form.indikator_catatan || null,
             };
 
             let r;

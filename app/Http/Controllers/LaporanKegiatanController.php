@@ -34,10 +34,12 @@ class LaporanKegiatanController extends Controller
             'id_murid' => 'required|integer|exists:murid,id_murid',
             'judul_laporan' => 'required|string|max:255',
             'isi_laporan' => 'nullable|string',
+            'indikator' => 'nullable|string|in:BB,MB,BSH,BSB',
+            'indikator_catatan' => 'nullable|string',
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();
-        $laporan = $this->service->create($user, $request->only(['id_jadwal', 'id_murid', 'judul_laporan', 'isi_laporan']));
+        $laporan = $this->service->create($user, $request->only(['id_jadwal', 'id_murid', 'judul_laporan', 'isi_laporan', 'indikator', 'indikator_catatan']));
 
         return ApiResponse::created($laporan, 'Laporan berhasil dibuat');
     }
@@ -47,10 +49,12 @@ class LaporanKegiatanController extends Controller
         $request->validate([
             'judul_laporan' => 'sometimes|string|max:255',
             'isi_laporan' => 'nullable|string',
+            'indikator' => 'nullable|string|in:BB,MB,BSH,BSB',
+            'indikator_catatan' => 'nullable|string',
         ]);
 
         $user = JWTAuth::parseToken()->authenticate();
-        $laporan = $this->service->update($user, $id, $request->only(['judul_laporan', 'isi_laporan']));
+        $laporan = $this->service->update($user, $id, $request->only(['judul_laporan', 'isi_laporan', 'indikator', 'indikator_catatan']));
 
         return ApiResponse::success($laporan, 'Laporan berhasil diperbarui');
     }
@@ -73,5 +77,17 @@ class LaporanKegiatanController extends Controller
         $balasan = $this->service->kirimBalasan($user, $id, $request->isi_balasan);
 
         return ApiResponse::created($balasan, 'Balasan berhasil dikirim');
+    }
+
+    public function trend(Request $request): JsonResponse
+    {
+        $user = JWTAuth::parseToken()->authenticate();
+        $klasId = $request->query('kelas_id') ? intval($request->query('kelas_id')) : null;
+        $muridId = $request->query('murid_id') ? intval($request->query('murid_id')) : null;
+        $fromDate = $request->query('from');
+        $toDate = $request->query('to');
+
+        $data = $this->service->getTrendData($user, $klasId, $muridId, $fromDate, $toDate);
+        return ApiResponse::success($data);
     }
 }

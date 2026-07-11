@@ -65,6 +65,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::put('laporan/{id}', [LaporanKegiatanController::class, 'update'])->middleware('role:admin,guru');
     Route::delete('laporan/{id}', [LaporanKegiatanController::class, 'destroy'])->middleware('role:admin,guru');
     Route::post('laporan/{id}/balas', [LaporanKegiatanController::class, 'balas']);
+    Route::get('laporan/trend/data', [LaporanKegiatanController::class, 'trend']);
     Route::delete('balasan/{id}', [BalasanLaporanController::class, 'destroy'])->middleware('role:admin,guru');
 
     // Notifikasi

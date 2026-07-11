@@ -10,7 +10,7 @@ class LaporanKegiatan extends Model
     protected $primaryKey = 'id_laporan';
     public $timestamps = false;
 
-    protected $fillable = ['id_jadwal', 'id_murid', 'id_guru', 'judul_laporan', 'isi_laporan'];
+    protected $fillable = ['id_jadwal', 'id_murid', 'id_guru', 'judul_laporan', 'isi_laporan', 'indikator', 'indikator_catatan'];
 
     protected function casts(): array
     {

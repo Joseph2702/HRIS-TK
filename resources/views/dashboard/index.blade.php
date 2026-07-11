@@ -4,23 +4,37 @@
 @section('content')
 <div x-data="dashboard()" x-init="init()">
 
-    {{-- ── ORANG TUA: redirect ke laporan ────────────────── --}}
+    {{-- ── ORANG TUA: Grafik indikator (1 filter: periode) ────────────────── --}}
     <template x-if="role === 'orang_tua'">
-        <div class="flex flex-col items-center justify-center min-h-96 text-center">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center mb-4" style="background:#EFC9EA">
-                <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
+        <div>
+            <div class="page-banner mb-6">
+                <h1>Selamat datang, <span x-text="userName"></span>!</h1>
+                <p class="text-sm text-gray-600 mt-1" x-text="'Hari ini: ' + tanggalHariIni"></p>
             </div>
-            <h2 class="text-xl font-bold text-gray-800 mb-2">Selamat datang, <span x-text="userName"></span>!</h2>
-            <p class="text-gray-500 text-sm mb-6">Pantau perkembangan anak Anda melalui laporan kegiatan.</p>
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
+
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <h3 class="font-semibold text-gray-800 text-sm">Grafik Perkembangan Anak (Indikator)</h3>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <input type="date" x-model="parentFilter.from" @change="loadParentTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <input type="date" x-model="parentFilter.to" @change="loadParentTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <button @click="resetParentTrendFilters()" class="btn-salmon py-1 px-3">Reset</button>
+                    </div>
+                </div>
+
+                <div>
+                    <canvas id="parentIndikatorChart" width="900" height="320" class="w-full"></canvas>
+                    <p class="text-xs text-gray-500 mt-3">Keterangan: BB = Belum Berkembang · MB = Mulai Berkembang · BSH = Berkembang Sesuai Harapan · BSB = Berkembang Sangat Baik</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3 mt-6">
                 <a href="/laporan" class="btn-pink">Lihat Laporan Kegiatan</a>
                 <a href="/notifikasi" class="btn-blue">Notifikasi</a>
             </div>
         </div>
     </template>
+
 
     {{-- ── GURU DASHBOARD ──────────────────────────────────── --}}
     <template x-if="role === 'guru'">
@@ -43,6 +57,29 @@
                         <p class="text-2xl font-bold text-gray-800" x-text="loading ? '...' : stats.jadwalHariIni"></p>
                     </div>
                 </div>
+                {{-- Indikator Penilaian Trend Chart (Admin) --}}
+                <!-- <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-800 text-sm">Grafik Perkembangan Anak (Indikator)</h3>
+                        <div class="flex items-center gap-2">
+                            <select x-model="filter.murid_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                                <option value="">Semua Anak</option>
+                                <template x-for="m in muridList" :key="m.id_murid"><option :value="m.id_murid" x-text="m.nama_murid"></option></template>
+                            </select>
+                            <select x-model="filter.kelas_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                                <option value="">Semua Kelas</option>
+                                <template x-for="k in kelasList" :key="k.id_kelas"><option :value="k.id_kelas" x-text="k.nama_kelas"></option></template>
+                            </select>
+                            <input type="date" x-model="filter.from" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <input type="date" x-model="filter.to" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <button @click="resetTrendFilters()" class="btn-salmon py-1 px-3">Reset</button>
+                        </div>
+                    </div>
+                    <div>
+                        <canvas id="indikatorChartAdmin" width="900" height="320" class="w-full"></canvas>
+                        <p class="text-xs text-gray-500 mt-3">Keterangan: BB = Belum Berkembang · MB = Mulai Berkembang · BSH = Berkembang Sesuai Harapan · BSB = Berkembang Sangat Baik</p>
+                    </div>
+                </div> -->
                 <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3">
                     <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:#EFC9EA">
                         <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,6 +167,29 @@
                             </div>
                         </template>
                     </div>
+                </div>
+            </div>
+            {{-- Indikator Penilaian Trend Chart (Guru) --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-gray-800 text-sm">Grafik Perkembangan Anak (Indikator)</h3>
+                    <div class="flex items-center gap-2">
+                        <select x-model="filter.murid_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <option value="">Semua Anak</option>
+                            <template x-for="m in muridList" :key="m.id_murid"><option :value="m.id_murid" x-text="m.nama_murid"></option></template>
+                        </select>
+                        <select x-model="filter.kelas_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <option value="">Semua Kelas</option>
+                            <template x-for="k in kelasList" :key="k.id_kelas"><option :value="k.id_kelas" x-text="k.nama_kelas"></option></template>
+                        </select>
+                        <input type="date" x-model="filter.from" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <input type="date" x-model="filter.to" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <button @click="resetTrendFilters()" class="btn-salmon py-1 px-3">Reset</button>
+                    </div>
+                </div>
+                <div>
+                    <canvas id="indikatorChart" width="900" height="320" class="w-full"></canvas>
+                    <p class="text-xs text-gray-500 mt-3">Keterangan: BB = Belum Berkembang · MB = Mulai Berkembang · BSH = Berkembang Sesuai Harapan · BSB = Berkembang Sangat Baik</p>
                 </div>
             </div>
         </div>
@@ -241,14 +301,26 @@ function dashboard() {
             { label: 'Total Kelas', value: 0, icon: '🏫',   color: '#C2DFF4' },
             { label: 'Total Guru',  value: 0, icon: '👩‍🏫', color: '#9FD4A0' },
         ],
-        kelasList: [], artikelTerbaru: [], laporanTerbaru: [],
+        kelasList: [], artikelTerbaru: [], laporanTerbaru: [], muridList: [],
+
+        // Trend chart filters & data
+        filter: { murid_id: '', kelas_id: '', from: '', to: '' },
+        parentFilter: { from: '', to: '' },
+        trendData: [],
+
 
         // Guru
         stats: { jadwalHariIni: 0, totalMurid: 0, totalLaporan: 0, totalArtikel: 0 },
         jadwalHariIni: [],
 
         async init() {
-            if (this.role === 'orang_tua') { this.loading = false; return; }
+            if (this.role === 'orang_tua') {
+                // load initial trend for parent (indikator refer to child's data from backend)
+                this.loading = false;
+                try { await this.loadParentTrend(); } catch(e) {}
+                return;
+            }
+
 
             if (this.role === 'admin') {
                 const [mr, kr, lr, ar] = await Promise.all([
@@ -258,7 +330,7 @@ function dashboard() {
                     api.get('/artikel'),
                 ]);
                 this.loading = false;
-                if (mr?.ok) this.adminStats[0].value = mr.data.data?.total || 0;
+                if (mr?.ok) { this.adminStats[0].value = mr.data.data?.total || 0; this.muridList = mr.data.data?.data || []; }
                 if (kr?.ok) { this.adminStats[1].value = kr.data.data?.total || 0; this.kelasList = kr.data.data?.data?.slice(0,5) || []; }
                 if (lr?.ok) { this.adminStats[3].value = lr.data.data?.total || 0; this.laporanTerbaru = lr.data.data?.data?.slice(0,4) || []; }
                 if (ar?.ok) { this.artikelTerbaru = ar.data.data?.data?.slice(0,4) || []; }
@@ -268,6 +340,10 @@ function dashboard() {
                     const users = ur.data.data?.data || [];
                     this.adminStats[2].value = users.filter(u => u.roles?.some(r => r.nama_role === 'guru')).length;
                 }
+
+                // load initial trend data for admin
+                try { await this.loadTrend(); } catch(e){}
+
             }
 
             if (this.role === 'guru') {
@@ -291,9 +367,221 @@ function dashboard() {
                     this.stats.jadwalHariIni = this.jadwalHariIni.length;
                     // Total murid from all kelas
                     this.stats.totalMurid = kelasList.reduce((s, k) => s + (k.murid_count || 0), 0);
+                    // set kelas list
+                    this.kelasList = kelasList;
+                    // load murid list for filters
+                    const mr2 = await api.get('/murid');
+                    if (mr2?.ok) this.muridList = mr2.data.data?.data || [];
                 }
                 if (lr?.ok) { this.laporanTerbaru = lr.data.data?.data?.slice(0,4) || []; this.stats.totalLaporan = lr.data.data?.total || 0; }
                 if (ar?.ok) this.stats.totalArtikel = ar.data.data?.total || 0;
+            }
+            // load initial trend data after fetching lists
+            try { if (this.role !== 'orang_tua') await this.loadTrend(); } catch(e){}
+        },
+
+        async loadTrend() {
+            // Fetch from server-side aggregation endpoint
+            // (admin & guru: 3 filter anak/kelas/periode)
+            const params = new URLSearchParams();
+
+            if (this.filter.murid_id) params.append('murid_id', this.filter.murid_id);
+            if (this.filter.kelas_id) params.append('kelas_id', this.filter.kelas_id);
+            if (this.filter.from) params.append('from', this.filter.from);
+            if (this.filter.to) params.append('to', this.filter.to);
+
+            const r = await api.get(`/laporan/trend/data?${params.toString()}`);
+            if (!r?.ok) {
+                this.trendData = [];
+                this.drawCanvasChart('indikatorChart', [], {});
+                this.drawCanvasChart('indikatorChartAdmin', [], {});
+                return;
+            }
+
+            // Response is array of { date, value }
+            const points = r.data.data || [];
+            this.trendData = points;
+
+            // draw on both canvases
+            this.drawCanvasChart('indikatorChart', points, { showHover: true });
+            this.drawCanvasChart('indikatorChartAdmin', points, { showHover: true });
+        },
+
+        resetTrendFilters() {
+            this.filter = { murid_id: '', kelas_id: '', from: '', to: '' };
+            this.loadTrend();
+        },
+
+        resetParentTrendFilters() {
+            this.parentFilter = { from: '', to: '' };
+            this.loadParentTrend();
+        },
+
+        async loadParentTrend() {
+            const params = new URLSearchParams();
+            if (this.parentFilter.from) params.append('from', this.parentFilter.from);
+            if (this.parentFilter.to) params.append('to', this.parentFilter.to);
+
+            const r = await api.get(`/laporan/trend/data?${params.toString()}`);
+            if (!r?.ok) {
+                this.drawCanvasChart('parentIndikatorChart', [], {});
+                return;
+            }
+
+            const points = r.data.data || [];
+            this.drawCanvasChart('parentIndikatorChart', points, { showHover: true });
+        },
+
+
+        mapIndicator(ind) {
+            if (!ind) return 0;
+            return ind === 'BB' ? 1 : ind === 'MB' ? 2 : ind === 'BSH' ? 3 : ind === 'BSB' ? 4 : 0;
+        },
+
+        drawCanvasChart(canvasId, points, opts = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.width = canvas.clientWidth * dpr;
+            const h = canvas.height = 320 * dpr;
+            ctx.clearRect(0, 0, w, h);
+
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+
+            // Margins and dimensions
+            const left = 60 * dpr;
+            const right = w - 20 * dpr;
+            const top = 20 * dpr;
+            const bottom = 50 * dpr;
+            const plotW = right - left;
+            const plotH = h - top - bottom;
+
+            // Draw Y-axis labels and grid (1-4)
+            const labels = ['', 'BB', 'MB', 'BSH', 'BSB'];
+            const colors = ['', '#ef4444', '#eab308', '#22c55e', '#3b82f6'];
+            ctx.font = `${12 * dpr}px sans-serif`;
+            ctx.fillStyle = '#6b7280';
+            ctx.textAlign = 'right';
+
+            for (let i = 1; i <= 4; i++) {
+                const y = h - bottom - (i / 4) * plotH;
+                ctx.fillText(labels[i], left - 8 * dpr, y + 4 * dpr);
+
+                // Grid line
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.lineWidth = 1 * dpr;
+                ctx.beginPath();
+                ctx.moveTo(left, y);
+                ctx.lineTo(right, y);
+                ctx.stroke();
+            }
+
+            if (!points || points.length === 0) {
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.fillText('Tidak ada data indikator', w / 2, h / 2);
+                return;
+            }
+
+            // Plot area border
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1 * dpr;
+            ctx.strokeRect(left, top, plotW, plotH);
+
+            // Draw line (smooth cubic bezier)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2.5 * dpr;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const positions = points.map((p, idx) => {
+                const x = left + (idx / Math.max(1, points.length - 1)) * plotW;
+                const y = h - bottom - ((p.value || p.y) / 4) * plotH;
+                return { x, y, date: p.date || p.x, val: p.value || p.y };
+            });
+
+            // Draw smooth curve using quadratic curves
+            ctx.beginPath();
+            if (positions.length === 1) {
+                ctx.moveTo(positions[0].x, positions[0].y);
+            } else {
+                ctx.moveTo(positions[0].x, positions[0].y);
+                for (let i = 1; i < positions.length; i++) {
+                    const prev = positions[i - 1];
+                    const curr = positions[i];
+                    const cpx = (prev.x + curr.x) / 2;
+                    const cpy = (prev.y + curr.y) / 2;
+                    ctx.quadraticCurveTo(prev.x, prev.y, cpx, cpy);
+                }
+                // Final segment
+                ctx.quadraticCurveTo(positions[positions.length - 1].x, positions[positions.length - 1].y, positions[positions.length - 1].x, positions[positions.length - 1].y);
+            }
+            ctx.stroke();
+
+            // Draw points and labels
+            positions.forEach((p, idx) => {
+                // Point circle
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
+                ctx.fill();
+
+                // X-axis label
+                ctx.fillStyle = '#9ca3af';
+                ctx.textAlign = 'center';
+                ctx.font = `${11 * dpr}px sans-serif`;
+                const dateLabel = p.date.split('-').slice(2).join('/'); // DD/MM format
+                ctx.fillText(dateLabel, p.x, h - bottom + 18 * dpr);
+            });
+
+            // Hover tooltip (if showHover)
+            if (opts.showHover) {
+                canvas.onmousemove = (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    const mx = (e.clientX - rect.left) * dpr;
+                    const my = (e.clientY - rect.top) * dpr;
+
+                    // Find closest point
+                    let closest = null;
+                    let minDist = 20 * dpr;
+                    for (const p of positions) {
+                        const dist = Math.hypot(p.x - mx, p.y - my);
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closest = p;
+                        }
+                    }
+
+                    if (closest) {
+                        // Highlight point
+                        ctx.fillStyle = '#1f2937';
+                        ctx.beginPath();
+                        ctx.arc(closest.x, closest.y, 6 * dpr, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Tooltip
+                        const indLabel = ['', 'BB', 'MB', 'BSH', 'BSB'][Math.round(closest.val)];
+                        const tooltipW = 100 * dpr;
+                        const tooltipH = 32 * dpr;
+                        const tooltipX = Math.max(left, Math.min(closest.x - tooltipW / 2, right - tooltipW));
+                        const tooltipY = Math.max(top, closest.y - tooltipH - 10 * dpr);
+
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                        ctx.fillRect(tooltipX, tooltipY, tooltipW, tooltipH);
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = `${11 * dpr}px sans-serif`;
+                        ctx.textAlign = 'center';
+                        ctx.fillText(closest.date, tooltipX + tooltipW / 2, tooltipY + 10 * dpr);
+                        ctx.fillText(indLabel + ' (' + closest.val.toFixed(2) + ')', tooltipX + tooltipW / 2, tooltipY + 22 * dpr);
+                    }
+                };
+                canvas.onmouseleave = () => {
+                    canvas.onmousemove = null;
+                };
             }
         },
 
