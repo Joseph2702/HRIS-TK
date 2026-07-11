@@ -33,6 +33,7 @@ class LaporanKegiatanRepository
         $query = LaporanKegiatan::with(['murid', 'guru.user', 'jadwal.kelas', 'balasan'])
             ->whereHas('murid', function ($q) use ($orangTuaId, $muridId) {
                 $q->where('id_orang_tua', $orangTuaId);
+
                 if ($muridId !== null) {
                     $q->where('id_murid', $muridId);
                 }
@@ -50,6 +51,7 @@ class LaporanKegiatanRepository
     public function update(LaporanKegiatan $laporan, array $data): LaporanKegiatan
     {
         $laporan->update($data);
+
         return $laporan->fresh(['murid', 'guru.user', 'jadwal.kelas']);
     }
 
@@ -74,7 +76,7 @@ class LaporanKegiatanRepository
             });
         }
 
-        if (! empty($muridIds)) {
+        if (!empty($muridIds)) {
             $query->whereIn('id_murid', $muridIds);
         }
 
@@ -88,19 +90,19 @@ class LaporanKegiatanRepository
 
         $results = $query->get(['indikator', 'created_at'])->toArray();
 
-        // Group by date and compute average
         $grouped = [];
         foreach ($results as $row) {
             $date = substr($row['created_at'], 0, 10); // YYYY-MM-DD
             $val = $this->mapIndicatorValue($row['indikator']);
-            if (! isset($grouped[$date])) {
+
+            if (!isset($grouped[$date])) {
                 $grouped[$date] = ['sum' => 0, 'count' => 0];
             }
+
             $grouped[$date]['sum'] += $val;
             $grouped[$date]['count'] += 1;
         }
 
-        // Transform to array of { date, value }
         $output = [];
         foreach ($grouped as $date => $data) {
             $output[] = [
@@ -109,11 +111,10 @@ class LaporanKegiatanRepository
             ];
         }
 
-        // Sort by date
         usort($output, fn ($a, $b) => strcmp($a['date'], $b['date']));
+
         return $output;
     }
-
 
     private function mapIndicatorValue(string $indicator): int
     {
@@ -126,4 +127,3 @@ class LaporanKegiatanRepository
         };
     }
 }
-

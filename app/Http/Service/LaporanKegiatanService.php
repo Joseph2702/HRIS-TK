@@ -172,7 +172,18 @@ class LaporanKegiatanService
                 throw new BusinessException('Profil orang tua tidak ditemukan', 404);
             }
 
-            // Parents can have multiple children: aggregate across ALL their children
+            // Parents can have multiple children: allow filtering by murid_id if provided
+            if ($muridId !== null) {
+                $muridList = $this->muridRepo->findByOrangTua($orangTua->id_orang_tua);
+                $allowedIds = $muridList->pluck('id_murid')->filter()->values()->all();
+
+                if (!in_array($muridId, $allowedIds, true)) {
+                    throw new BusinessException('Akses tidak diizinkan', 403);
+                }
+
+                return $this->repo->aggregateByDateForMuridIds($klasId, [$muridId], $fromDate, $toDate);
+            }
+
             $muridList = $this->muridRepo->findByOrangTua($orangTua->id_orang_tua);
             if ($muridList->isEmpty()) {
                 return [];
@@ -183,7 +194,6 @@ class LaporanKegiatanService
         }
 
         return $this->repo->aggregateByDate($klasId, $muridId, $fromDate, $toDate);
-
     }
 }
 

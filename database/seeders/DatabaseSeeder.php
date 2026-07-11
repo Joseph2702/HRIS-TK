@@ -190,7 +190,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // ─── LAPORAN KEGIATAN ──────────────────────────────────
+        // ─── LAPORAN KEGIATAN (untuk grafik indikator) ──────────────
+        // Catatan:
+        // - Dashboard trend memakai sumbu X dari tanggal (created_at/date dari endpoint trend)
+        // - Migration menambah kolom: indikator (BB/MB/BSH/BSB) dan indikator_catatan
+        // Jadi seeder ini membuat beberapa laporan di beberapa hari berbeda agar trend menampilkan banyak titik.
         $laporanData = [
             ['Perkembangan Motorik Zahra Bulan April',
              'Zahra menunjukkan perkembangan motorik halus yang sangat baik. Ia mampu mewarnai gambar dengan rapi dan menyelesaikan puzzle 20 keping dengan mandiri. Semangat belajarnya tinggi dan selalu antusias mengikuti kegiatan.',
@@ -212,16 +216,43 @@ class DatabaseSeeder extends Seeder
              $muridEntities[5], $jadwalEntities[7], $guruEntities[2]],
         ];
 
+        $indikatorCycle = ['BB', 'MB', 'BSH', 'BSB'];
+
         $laporanEntities = [];
+        $daysBack = 10; // buat titik cukup agar sumbu X terlihat
         foreach ($laporanData as $ld) {
-            $laporanEntities[] = LaporanKegiatan::firstOrCreate(
-                ['judul_laporan' => $ld[0], 'id_murid' => $ld[2]->id_murid],
-                [
-                    'isi_laporan' => $ld[1],
-                    'id_jadwal'   => $ld[3]->id_jadwal,
-                    'id_guru'     => $ld[4]->id_guru,
-                ]
-            );
+            /** @var Murid $murid */
+            /** @var JadwalKelas $jadwal */
+            $murid = $ld[2];
+            $jadwal = $ld[3];
+            $guru = $ld[4];
+
+            for ($d = $daysBack; $d >= 0; $d--) {
+                $date = now()->subDays($d);
+
+                // ubah judul agar firstOrCreate tidak menimpa entri hari lain
+                $judul = $ld[0] . ' — ' . $date->format('Y-m-d');
+                $indikator = $indikatorCycle[($d + $murid->id_murid) % count($indikatorCycle)];
+
+                $laporan = LaporanKegiatan::firstOrCreate(
+                    ['judul_laporan' => $judul, 'id_murid' => $murid->id_murid],
+                    [
+                        'isi_laporan' => $ld[1],
+                        'id_jadwal'   => $jadwal->id_jadwal,
+                        'id_guru'     => $guru->id_guru,
+                        'indikator'   => $indikator,
+                        'indikator_catatan' => 'Catatan indikator otomatis untuk seed pada ' . $date->format('Y-m-d') . '.',
+                        // paksa tanggal agar chart punya sumbu X yang beragam
+                        'created_at'  => $date,
+                        'updated_at'  => $date,
+                    ]
+                );
+
+                // simpan satu entri "utama" untuk balasan (ambil hari terakhir/paling dekat)
+                if ($d === 0) {
+                    $laporanEntities[] = $laporan;
+                }
+            }
         }
 
         // ─── BALASAN LAPORAN ───────────────────────────────────

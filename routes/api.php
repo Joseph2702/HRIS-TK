@@ -10,6 +10,7 @@ use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UlasanLayananController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth (Public) ──────────────────────────────────────────
@@ -67,6 +68,10 @@ Route::middleware('jwt.auth')->group(function () {
     Route::post('laporan/{id}/balas', [LaporanKegiatanController::class, 'balas']);
     Route::get('laporan/trend/data', [LaporanKegiatanController::class, 'trend']);
     Route::delete('balasan/{id}', [BalasanLaporanController::class, 'destroy'])->middleware('role:admin,guru');
+
+    // Ulasan Layanan
+    Route::get('ulasan-layanan', [UlasanLayananController::class, 'index']);
+    Route::post('ulasan-layanan', [UlasanLayananController::class, 'store'])->middleware('role:orang_tua');
 
     // Notifikasi
     Route::get('notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index']);

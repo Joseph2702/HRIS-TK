@@ -20,4 +20,6 @@ Route::get('/notifikasi', fn() => view('notifikasi.index'));
 Route::get('/layanan', fn() => view('layanan.index'));
 Route::get('/layanan/{id}', fn($id) => view('layanan.show', ['artikelId' => $id]));
 
+Route::get('/ulasan-layanan', fn() => view('ulasan-layanan.index'));
+
 Route::get('/', fn() => redirect('/login'));

@@ -158,6 +158,16 @@
                     </a>
                 </div>
             </template>
+
+            {{-- Ulasan Layanan (paling bawah) --}}
+            <a href="/ulasan-layanan" class="sidebar-link" :class="{active: isActive('/ulasan-layanan')}"
+               x-show="hasRole('admin') || hasRole('orang_tua')">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.83 9.83 0 01-4.083-.87L3 20l1.25-3.125A7.969 7.969 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                Ulasan Layanan
+            </a>
         </nav>
 
     </aside>

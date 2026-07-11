@@ -4,7 +4,7 @@
 @section('content')
 <div x-data="dashboard()" x-init="init()">
 
-    {{-- ── ORANG TUA: Grafik indikator (1 filter: periode) ────────────────── --}}
+    {{-- ── ORANG TUA: Grafik indikator (filter: anak + periode) ────────────────── --}}
     <template x-if="role === 'orang_tua'">
         <div>
             <div class="page-banner mb-6">
@@ -16,6 +16,13 @@
                 <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <h3 class="font-semibold text-gray-800 text-sm">Grafik Perkembangan Anak (Indikator)</h3>
                     <div class="flex items-center gap-2 flex-wrap">
+                        <select x-model="parentFilter.murid_id" @change="loadParentTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <option value="">Pilih Anak</option>
+                            <template x-for="m in muridList" :key="m.id_murid">
+                                <option :value="m.id_murid" x-text="m.nama_murid"></option>
+                            </template>
+                        </select>
+
                         <input type="date" x-model="parentFilter.from" @change="loadParentTrend()" class="px-3 py-1 rounded-full border text-sm">
                         <input type="date" x-model="parentFilter.to" @change="loadParentTrend()" class="px-3 py-1 rounded-full border text-sm">
                         <button @click="resetParentTrendFilters()" class="btn-salmon py-1 px-3">Reset</button>
@@ -219,6 +226,35 @@
                 </template>
             </div>
 
+            {{-- Indikator Trend Chart (Admin) --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
+                <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                    <h3 class="font-semibold text-gray-800 text-sm">Grafik Perkembangan Anak (Indikator)</h3>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select x-model="filter.murid_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <option value="">Semua Anak</option>
+                            <template x-for="m in muridList" :key="m.id_murid">
+                                <option :value="m.id_murid" x-text="m.nama_murid"></option>
+                            </template>
+                        </select>
+                        <select x-model="filter.kelas_id" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                            <option value="">Semua Kelas</option>
+                            <template x-for="k in kelasList" :key="k.id_kelas">
+                                <option :value="k.id_kelas" x-text="k.nama_kelas"></option>
+                            </template>
+                        </select>
+                        <input type="date" x-model="filter.from" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <input type="date" x-model="filter.to" @change="loadTrend()" class="px-3 py-1 rounded-full border text-sm">
+                        <button @click="resetTrendFilters()" class="btn-salmon py-1 px-3">Reset</button>
+                    </div>
+                </div>
+
+                <div>
+                    <canvas id="indikatorChartAdmin" width="900" height="320" class="w-full"></canvas>
+                    <p class="text-xs text-gray-500 mt-3">Keterangan: BB = Belum Berkembang · MB = Mulai Berkembang · BSH = Berkembang Sesuai Harapan · BSB = Berkembang Sangat Baik</p>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {{-- Kelas & Murid --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
@@ -315,7 +351,29 @@ function dashboard() {
 
         async init() {
             if (this.role === 'orang_tua') {
-                // load initial trend for parent (indikator refer to child's data from backend)
+                // Default: 7 hari terakhir (eligibility window)
+                const today = new Date();
+                const to = today.toISOString().split('T')[0];
+                const fromDate = new Date(today);
+                fromDate.setDate(fromDate.getDate() - 6);
+                const from = fromDate.toISOString().split('T')[0];
+
+                this.parentFilter.from = from;
+                this.parentFilter.to = to;
+
+                // Load anak untuk dropdown (akan ditampilkan sesuai hasil endpoint /murid)
+                try {
+                    const mr = await api.get('/murid');
+                    if (mr?.ok) {
+                        const list = mr.data.data?.data || mr.data.data || mr.data?.data?.data || [];
+                        this.muridList = Array.isArray(list) ? list : [];
+
+                        if (!this.parentFilter.murid_id && this.muridList.length > 0) {
+                            this.parentFilter.murid_id = this.muridList[0].id_murid;
+                        }
+                    }
+                } catch (e) {}
+
                 this.loading = false;
                 try { await this.loadParentTrend(); } catch(e) {}
                 return;
@@ -330,6 +388,15 @@ function dashboard() {
                     api.get('/artikel'),
                 ]);
                 this.loading = false;
+
+                // Default: 7 hari terakhir supaya chart tidak kosong/tergantung backend
+                const today = new Date();
+                const to = today.toISOString().split('T')[0];
+                const fromDate = new Date(today);
+                fromDate.setDate(fromDate.getDate() - 6);
+                const from = fromDate.toISOString().split('T')[0];
+                if (!this.filter.from) this.filter.from = from;
+                if (!this.filter.to) this.filter.to = to;
                 if (mr?.ok) { this.adminStats[0].value = mr.data.data?.total || 0; this.muridList = mr.data.data?.data || []; }
                 if (kr?.ok) { this.adminStats[1].value = kr.data.data?.total || 0; this.kelasList = kr.data.data?.data?.slice(0,5) || []; }
                 if (lr?.ok) { this.adminStats[3].value = lr.data.data?.total || 0; this.laporanTerbaru = lr.data.data?.data?.slice(0,4) || []; }
@@ -413,12 +480,13 @@ function dashboard() {
         },
 
         resetParentTrendFilters() {
-            this.parentFilter = { from: '', to: '' };
+            this.parentFilter = { murid_id: this.parentFilter.murid_id, from: '', to: '' };
             this.loadParentTrend();
         },
 
         async loadParentTrend() {
             const params = new URLSearchParams();
+            if (this.parentFilter.murid_id) params.append('murid_id', this.parentFilter.murid_id);
             if (this.parentFilter.from) params.append('from', this.parentFilter.from);
             if (this.parentFilter.to) params.append('to', this.parentFilter.to);
 
@@ -429,6 +497,7 @@ function dashboard() {
             }
 
             const points = r.data.data || [];
+            this.trendData = points;
             this.drawCanvasChart('parentIndikatorChart', points, { showHover: true });
         },
 
@@ -455,13 +524,12 @@ function dashboard() {
             const left = 60 * dpr;
             const right = w - 20 * dpr;
             const top = 20 * dpr;
-            const bottom = 50 * dpr;
+            const bottom = 55 * dpr; // slightly larger to keep labels inside
             const plotW = right - left;
             const plotH = h - top - bottom;
 
             // Draw Y-axis labels and grid (1-4)
             const labels = ['', 'BB', 'MB', 'BSH', 'BSB'];
-            const colors = ['', '#ef4444', '#eab308', '#22c55e', '#3b82f6'];
             ctx.font = `${12 * dpr}px sans-serif`;
             ctx.fillStyle = '#6b7280';
             ctx.textAlign = 'right';
@@ -491,24 +559,56 @@ function dashboard() {
             ctx.lineWidth = 1 * dpr;
             ctx.strokeRect(left, top, plotW, plotH);
 
-            // Draw line (smooth cubic bezier)
+            // Helper to robustly read y + date from API shape
+            const getYVal = (p) => {
+                if (p == null) return null;
+                const y = p.value ?? p.y ?? p.indikator ?? p.indeks ?? p.score;
+                const num = Number(y);
+                return Number.isFinite(num) ? num : null;
+            };
+            const getDateStr = (p) => {
+                return p?.date ?? p?.x ?? p?.waktu ?? null;
+            };
+            const formatDateLabel = (dateStr, idx) => {
+                if (!dateStr) return `#${idx + 1}`;
+
+                // timestamp (ms/sec)
+                if (typeof dateStr === 'number') {
+                    const ms = dateStr > 1e12 ? dateStr : dateStr * 1000;
+                    const d = new Date(ms);
+                    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' });
+                }
+
+                if (typeof dateStr !== 'string') return `#${idx + 1}`;
+
+                // YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss
+                if (dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+                if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    if (parts.length >= 3) return `${parts[2]}/${parts[1]}`; // DD/MM
+                }
+
+                return dateStr; // fallback
+            };
+
+            // Draw line
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 2.5 * dpr;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
             const positions = points.map((p, idx) => {
+                const yVal = getYVal(p);
+                const dateStr = getDateStr(p);
                 const x = left + (idx / Math.max(1, points.length - 1)) * plotW;
-                const y = h - bottom - ((p.value || p.y) / 4) * plotH;
-                return { x, y, date: p.date || p.x, val: p.value || p.y };
+                const y = h - bottom - ((yVal ?? 0) / 4) * plotH;
+                return { x, y, date: dateStr, val: yVal };
             });
 
             // Draw smooth curve using quadratic curves
             ctx.beginPath();
-            if (positions.length === 1) {
-                ctx.moveTo(positions[0].x, positions[0].y);
-            } else {
-                ctx.moveTo(positions[0].x, positions[0].y);
+            ctx.moveTo(positions[0].x, positions[0].y);
+            if (positions.length > 1) {
                 for (let i = 1; i < positions.length; i++) {
                     const prev = positions[i - 1];
                     const curr = positions[i];
@@ -516,12 +616,10 @@ function dashboard() {
                     const cpy = (prev.y + curr.y) / 2;
                     ctx.quadraticCurveTo(prev.x, prev.y, cpx, cpy);
                 }
-                // Final segment
-                ctx.quadraticCurveTo(positions[positions.length - 1].x, positions[positions.length - 1].y, positions[positions.length - 1].x, positions[positions.length - 1].y);
             }
             ctx.stroke();
 
-            // Draw points and labels
+            // Draw points and X-axis labels
             positions.forEach((p, idx) => {
                 // Point circle
                 ctx.fillStyle = '#3b82f6';
@@ -529,12 +627,12 @@ function dashboard() {
                 ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
                 ctx.fill();
 
-                // X-axis label
+                // X-axis label (inside canvas)
                 ctx.fillStyle = '#9ca3af';
                 ctx.textAlign = 'center';
                 ctx.font = `${11 * dpr}px sans-serif`;
-                const dateLabel = p.date.split('-').slice(2).join('/'); // DD/MM format
-                ctx.fillText(dateLabel, p.x, h - bottom + 18 * dpr);
+                const dateLabel = formatDateLabel(p.date, idx);
+                ctx.fillText(dateLabel, p.x, h - bottom + 28 * dpr);
             });
 
             // Hover tooltip (if showHover)

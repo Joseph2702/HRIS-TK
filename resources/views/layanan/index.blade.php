@@ -15,12 +15,91 @@
             <p class="font-semibold text-gray-800">Butuh bantuan?</p>
             <p class="text-sm text-gray-500">Hubungi Sekolah langsung lewat WhatsApp untuk pertanyaan layanan.</p>
         </div>
-        <a href="https://wa.me/6281234567890?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20anak%20saya" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm" style="background-color:#25D366;">
-            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.52 3.48a11.9 11.9 0 00-16.84 0 11.8 11.8 0 00-3.5 8.43c0 2.09.55 4.14 1.6 5.96L2 22l4.34-1.14a11.8 11.8 0 005.96 1.6h.03a11.9 11.9 0 008.43-3.5 11.9 11.9 0 000-16.84zm-8.21 17.06h-.01a10.05 10.05 0 01-5.14-1.4l-.37-.22-3.24.84.87-3.16-.24-.38A10.05 10.05 0 014.76 7.1a8.96 8.96 0 0113.43 0 8.96 8.96 0 010 12.67 8.98 8.98 0 01-6.88 2.77zm4.2-6.18c-.23-.11-1.35-.66-1.56-.74-.21-.08-.36-.11-.51.11-.15.23-.58.74-.71.9-.13.16-.26.18-.49.07-.23-.11-.98-.36-1.86-1.15-.69-.61-1.15-1.36-1.28-1.59-.13-.23-.01-.35.1-.46.1-.1.23-.26.34-.38.11-.13.15-.22.23-.37.08-.15.04-.28-.02-.39-.07-.11-.51-1.23-.7-1.71-.18-.45-.36-.39-.51-.39-.13 0-.28-.01-.43-.01-.15 0-.39.06-.59.28-.2.23-.75.73-.75 1.78s.77 2.07.88 2.21c.11.14 1.52 2.33 3.68 3.26.51.22.9.35 1.21.45.51.16.98.14 1.35.09.41-.05 1.35-.55 1.54-1.08.19-.53.19-.98.13-1.08-.07-.11-.24-.17-.49-.28z"/>
-            </svg>
-            Hubungi WhatsApp
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="https://wa.me/6281234567890?text=Halo%20Admin%2C%20saya%20ingin%20bertanya%20tentang%20anak%20saya" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm" style="background-color:#25D366;">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20.52 3.48a11.9 11.9 0 00-16.84 0 11.8 11.8 0 00-3.5 8.43c0 2.09.55 4.14 1.6 5.96L2 22l4.34-1.14a11.8 11.8 0 005.96 1.6h.03a11.9 11.9 0 008.43-3.5 11.9 11.9 0 000-16.84zm-8.21 17.06h-.01a10.05 10.05 0 01-5.14-1.4l-.37-.22-3.24.84.87-3.16-.24-.38A10.05 10.05 0 014.76 7.1a8.96 8.96 0 0113.43 0 8.96 8.96 0 010 12.67 8.98 8.98 0 01-6.88 2.77zm4.2-6.18c-.23-.11-1.35-.66-1.56-.74-.21-.08-.36-.11-.51.11-.15.23-.58.74-.71.9-.13.16-.26.18-.49.07-.23-.11-.98-.36-1.86-1.15-.69-.61-1.15-1.36-1.28-1.59-.13-.23-.01-.35.1-.46.1-.1.23-.26.34-.38.11-.13.15-.22.23-.37.08-.15.04-.28-.02-.39-.07-.11-.51-1.23-.7-1.71-.18-.45-.36-.39-.51-.39-.13 0-.28-.01-.43-.01-.15 0-.39.06-.59.28-.2.23-.75.73-.75 1.78s.77 2.07.88 2.21c.11.14 1.52 2.33 3.68 3.26.51.22.9.35 1.21.45.51.16.98.14 1.35.09.41-.05 1.35-.55 1.54-1.08.19-.53.19-.98.13-1.08-.07-.11-.24-.17-.49-.28z"/>
+                </svg>
+                Hubungi WhatsApp
+            </a>
+
+            <template x-if="canSubmitConsult">
+                <button @click="openConsultModal()" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-sm" style="background:#C87CC8;">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Ajukan Konsultasi
+                </button>
+            </template>
+        </div>
+    </div>
+
+    {{-- Permintaan Konsultasi --}}
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-bold text-gray-800">Permintaan Konsultasi</h2>
+            <template x-if="appointmentsLoading">
+                <span class="text-xs text-gray-500">Memuat...</span>
+            </template>
+        </div>
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm overflow-x-auto">
+            <template x-if="!appointmentsLoading && appointments.length === 0">
+                <p class="text-center text-gray-500 py-4 text-sm">Belum ada permintaan konsultasi</p>
+            </template>
+
+            <template x-if="appointments.length > 0">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left text-gray-500">
+                            <th class="py-2 pr-3 font-semibold">Topik Konsultasi</th>
+                            <th class="py-2 pr-3 font-semibold">Tanggal</th>
+                            <th class="py-2 pr-3 font-semibold">Waktu</th>
+                            <th class="py-2 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="app in appointments" :key="app.id_appointment">
+                            <tr class="border-t border-gray-50">
+                                <td class="py-3 pr-3">
+                                    <div class="font-medium text-gray-800 line-clamp-2" x-text="app.reason || '-'"></div>
+                                </td>
+                                <td class="py-3 pr-3 text-gray-700" x-text="app.from_date || '-"></td>
+                                <td class="py-3 pr-3 text-gray-700" x-text="parseTimeFromReason(app.reason) || '-'"></td>
+                                <td class="py-3">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-3 py-1 rounded-full text-xs font-semibold"
+                                              :style="statusPillStyle(app.status)"
+                                              x-text="statusLabel(app.status)"></span>
+
+                                        <template x-if="canAdminApprove">
+                                            <template x-if="app.status === 'pending'">
+                                                <div class="flex items-center gap-2 ml-1">
+                                                    <button @click="approveAppointment(app.id_appointment)"
+                                                            class="btn-check"
+                                                            title="Approve">
+                                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </button>
+                                                    <button @click="rejectAppointment(app.id_appointment)"
+                                                            class="btn-reject"
+                                                            title="Reject">
+                                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                        </template>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </template>
+        </div>
     </div>
 
     <div class="flex items-center justify-between mb-5">
@@ -89,6 +168,42 @@
         </template>
     </div>
 
+    {{-- Modal Konsultasi --}}
+    <div x-show="showConsultModal" class="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/40" @click="showConsultModal=false"></div>
+        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto" @click.stop>
+            <h3 class="font-bold text-gray-800 mb-5">Ajukan Konsultasi</h3>
+
+            <form @submit.prevent="submitAppointment()" class="space-y-4">
+                <div>
+                    <label class="label">Topik Pengajuan</label>
+                    <textarea x-model="consultForm.topik" class="input h-28 resize-none" style="border-radius:1rem" required></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">Tanggal</label>
+                        <input type="date" x-model="consultForm.tanggal" class="input" required>
+                    </div>
+                    <div>
+                        <label class="label">Jam</label>
+                        <input type="time" x-model="consultForm.jam" class="input" required>
+                    </div>
+                </div>
+
+                <div class="text-xs text-gray-500 leading-relaxed">
+                    *Jam akan disimpan di dalam field “reason” untuk kompatibilitas dengan struktur database saat ini.
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" @click="showConsultModal=false" class="btn-salmon">Batal</button>
+                    <button type="submit" class="btn-green" :disabled="consultSaving"
+                            x-text="consultSaving ? 'Mengirim...' : 'Kirim Permintaan'"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Modal Form --}}
     <div x-show="showModal" class="fixed inset-0 z-40 flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/40" @click="showModal=false"></div>
@@ -139,7 +254,11 @@
 function layananPage() {
     const user = api.getUser()||{};
     return {
-        items:[], loading:true, search:'', showModal:false, showDelete:false,
+        // =========================
+        // Layanan Sekolah (existing)
+        // =========================
+        items:[], loading:true, search:'',
+        showModal:false, showDelete:false,
         editId:null, deleteId:null, saving:false,
         foto1File:null, foto1Preview:null, foto2File:null, foto2Preview:null,
         form:{ judul_artikel:'', konten_artikel:'' },
@@ -147,12 +266,140 @@ function layananPage() {
         canDelete:(user.roles||[]).includes('admin'),
         get filtered(){ return this.items.filter(i=>i.judul_artikel?.toLowerCase().includes(this.search.toLowerCase())); },
 
-        async init(){
-            // Layanan Sekolah: artikel bertipe layanan_sekolah
-            const r=await api.get('/artikel?tipe=layanan_sekolah'); this.loading=false;
-            if(r?.ok) this.items=r.data.data?.data||[];
+        // =========================
+        // Appointment / Konsultasi
+        // =========================
+        appointments: [],
+        appointmentsLoading: false,
+        showConsultModal: false,
+        consultSaving: false,
+        consultForm: { topik:'', tanggal:'', jam:'' },
+
+        canSubmitConsult: (user.roles||[]).includes('orang_tua'),
+        canAdminApprove: (user.roles||[]).includes('admin'),
+
+        openConsultModal(){
+            this.consultForm = { topik:'', tanggal:'', jam:'' };
+            this.showConsultModal = true;
         },
 
+        parseTimeFromReason(reason){
+            if(!reason) return null;
+            const m = String(reason).match(/Jam\s*:\s*(\d{2}:\d{2})/i);
+            return m?.[1] || null;
+        },
+
+        statusPillStyle(status){
+            const map = {
+                pending: { bg:'#EFC9EA', fg:'#9E3AA5' },
+                approved: { bg:'#C2DFF4', fg:'#2E5F95' },
+                rejected: { bg:'#FEE2E2', fg:'#B91C1C' },
+                completed:{ bg:'#DCFCE7', fg:'#166534' },
+            };
+            const s = map[status] || { bg:'#EEF2F7', fg:'#374151' };
+            return { backgroundColor: s.bg, color: s.fg };
+        },
+
+        statusLabel(status){
+            const map = {
+                pending: 'Pending',
+                approved: 'Approved',
+                rejected: 'Rejected',
+                completed: 'Selesai',
+            };
+            return map[status] || status || '-';
+        },
+
+        async fetchAppointments(){
+            this.appointmentsLoading = true;
+            try {
+                // Expected backend endpoints (may differ; adjust after backend route confirmation)
+                // Admin: GET /appointments
+                // Parent: GET /appointments/me
+                let r;
+                if(this.canAdminApprove) {
+                    r = await api.get('/appointments');
+                } else {
+                    r = await api.get('/appointments/me');
+                }
+
+                if(r?.ok){
+                    const data = r.data?.data || r.data || [];
+                    this.appointments = Array.isArray(data) ? data : (Array.isArray(data.data) ? data.data : []);
+                } else {
+                    this.appointments = [];
+                }
+            } catch (e){
+                this.appointments = [];
+            } finally {
+                this.appointmentsLoading = false;
+            }
+        },
+
+        async submitAppointment(){
+            if(!this.consultForm.topik || !this.consultForm.tanggal || !this.consultForm.jam){
+                Alpine.store('notif').error('Form konsultasi belum lengkap');
+                return;
+            }
+
+            this.consultSaving = true;
+            try {
+                // DB migration has no "jam" column; we encode into reason.
+                const reason = `${this.consultForm.topik}\nJam: ${this.consultForm.jam}`;
+
+                const payload = {
+                    reason,
+                    from_date: this.consultForm.tanggal,
+                };
+
+                const r = await api.post('/appointments', payload);
+                if(r?.ok){
+                    Alpine.store('notif').success('Permintaan konsultasi berhasil dikirim');
+                    this.showConsultModal = false;
+                    await this.fetchAppointments();
+                } else {
+                    Alpine.store('notif').error(r?.data?.message || 'Gagal mengirim permintaan');
+                }
+            } catch (e){
+                Alpine.store('notif').error('Gagal mengirim permintaan');
+            } finally {
+                this.consultSaving = false;
+            }
+        },
+
+        async approveAppointment(appointmentId){
+            const r = await api.put(`/appointments/${appointmentId}/approve`);
+            if(r?.ok){
+                Alpine.store('notif').success('Permintaan disetujui');
+                await this.fetchAppointments();
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal approve');
+            }
+        },
+
+        async rejectAppointment(appointmentId){
+            const r = await api.put(`/appointments/${appointmentId}/reject`);
+            if(r?.ok){
+                Alpine.store('notif').success('Permintaan ditolak');
+                await this.fetchAppointments();
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal reject');
+            }
+        },
+
+        async init(){
+            // Layanan Sekolah: artikel bertipe layanan_sekolah
+            const r = await api.get('/artikel?tipe=layanan_sekolah');
+            this.loading=false;
+            if(r?.ok) this.items=r.data.data?.data||[];
+
+            // Konsultasi
+            await this.fetchAppointments();
+        },
+
+        // =========================
+        // Layanan Sekolah methods
+        // =========================
         onFoto1(e){ this.foto1File=e.target.files[0]; if(this.foto1File){const rd=new FileReader();rd.onload=ev=>{this.foto1Preview=ev.target.result;};rd.readAsDataURL(this.foto1File);} },
         onFoto2(e){ this.foto2File=e.target.files[0]; if(this.foto2File){const rd=new FileReader();rd.onload=ev=>{this.foto2Preview=ev.target.result;};rd.readAsDataURL(this.foto2File);} },
 
@@ -161,6 +408,7 @@ function layananPage() {
             this.foto1File=null; this.foto1Preview=null; this.foto2File=null; this.foto2Preview=null;
             this.showModal=true;
         },
+
         editItem(item){
             this.editId=item.id_artikel;
             this.form={judul_artikel:item.judul_artikel, konten_artikel:item.konten_artikel};
@@ -169,6 +417,7 @@ function layananPage() {
             this.foto1File=null; this.foto2File=null;
             this.showModal=true;
         },
+
         confirmDelete(item){ this.deleteId=item.id_artikel; this.showDelete=true; },
 
         async save(){
@@ -185,14 +434,25 @@ function layananPage() {
                 ?await api.post(`/artikel/${this.editId}`, fd, true)
                 :await api.post('/artikel', fd, true);
             this.saving=false;
-            if(r?.ok){ this.showModal=false; Alpine.store('notif').success('Layanan berhasil disimpan'); await this.init(); }
-            else Alpine.store('notif').error(r?.data?.message||'Gagal menyimpan');
+
+            if(r?.ok){
+                this.showModal=false;
+                Alpine.store('notif').success('Layanan berhasil disimpan');
+                await this.init();
+            } else {
+                Alpine.store('notif').error(r?.data?.message||'Gagal menyimpan');
+            }
         },
 
         async deleteItem(){
-            const r=await api.del(`/artikel/${this.deleteId}`); this.showDelete=false;
-            if(r?.ok){ Alpine.store('notif').success('Layanan berhasil dihapus'); await this.init(); }
-            else Alpine.store('notif').error(r?.data?.message||'Gagal menghapus');
+            const r=await api.del(`/artikel/${this.deleteId}`);
+            this.showDelete=false;
+            if(r?.ok){
+                Alpine.store('notif').success('Layanan berhasil dihapus');
+                await this.init();
+            } else {
+                Alpine.store('notif').error(r?.data?.message||'Gagal menghapus');
+            }
         },
     };
 }
