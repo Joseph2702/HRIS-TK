@@ -69,9 +69,17 @@ Route::middleware('jwt.auth')->group(function () {
     Route::get('laporan/trend/data', [LaporanKegiatanController::class, 'trend']);
     Route::delete('balasan/{id}', [BalasanLaporanController::class, 'destroy'])->middleware('role:admin,guru');
 
+    // Konsultasi / Appointments
+    Route::get('appointments', [\App\Http\Controllers\AppointmentsController::class, 'index']);
+    Route::get('appointments/me', [\App\Http\Controllers\AppointmentsController::class, 'me']);
+    Route::post('appointments', [\App\Http\Controllers\AppointmentsController::class, 'store'])->middleware('role:orang_tua');
+    Route::put('appointments/{id}/approve', [\App\Http\Controllers\AppointmentsController::class, 'approve'])->middleware('role:admin');
+    Route::put('appointments/{id}/reject', [\App\Http\Controllers\AppointmentsController::class, 'reject'])->middleware('role:admin');
+
     // Ulasan Layanan
     Route::get('ulasan-layanan', [UlasanLayananController::class, 'index']);
     Route::post('ulasan-layanan', [UlasanLayananController::class, 'store'])->middleware('role:orang_tua');
+
 
     // Notifikasi
     Route::get('notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index']);
