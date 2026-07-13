@@ -397,15 +397,44 @@ function dashboard() {
                 const from = fromDate.toISOString().split('T')[0];
                 if (!this.filter.from) this.filter.from = from;
                 if (!this.filter.to) this.filter.to = to;
-                if (mr?.ok) { this.adminStats[0].value = mr.data.data?.total || 0; this.muridList = mr.data.data?.data || []; }
+                if (mr?.ok) {
+                    const payload = mr.data?.data ?? mr.data ?? {};
+                    // /murid sekarang return collection Murid, bukan objek paginator.
+                    const list = Array.isArray(payload) ? payload : (payload?.data ?? payload?.data ?? []);
+                    const total = payload?.total ?? (Array.isArray(list) ? list.length : 0);
+                    this.adminStats[0].value = total;
+                    // untuk debug (optional): console.log('murid payload', mr);
+                    this.muridList = Array.isArray(list) ? list : [];
+
+                }
                 if (kr?.ok) { this.adminStats[1].value = kr.data.data?.total || 0; this.kelasList = kr.data.data?.data?.slice(0,5) || []; }
                 if (lr?.ok) { this.adminStats[3].value = lr.data.data?.total || 0; this.laporanTerbaru = lr.data.data?.data?.slice(0,4) || []; }
                 if (ar?.ok) { this.artikelTerbaru = ar.data.data?.data?.slice(0,4) || []; }
-                // Count guru from users (approximate)
+                // Count guru from users
+                // /users return list; hitung user yang punya role 'guru'
                 const ur = await api.get('/users');
                 if (ur?.ok) {
-                    const users = ur.data.data?.data || [];
-                    this.adminStats[2].value = users.filter(u => u.roles?.some(r => r.nama_role === 'guru')).length;
+                    const usersPayload = ur.data?.data ?? ur.data ?? {};
+                    const list = Array.isArray(usersPayload) ? usersPayload : (usersPayload?.data ?? []);
+                    this.adminStats[2].value = Array.isArray(list)
+                        ? list.filter(u => {
+                            const roles = Array.isArray(u.roles) ? u.roles : [];
+                            // Prefer pivot is_active jika tersedia dari API
+                            return roles.some(r => {
+                                const namaRole = r?.nama_role ?? r?.namaRole;
+                                if (namaRole !== 'guru') return false;
+
+                                // handle beberapa kemungkinan shape response
+                                // - { nama_role: 'guru', pivot: { is_active: true } }
+                                // - { nama_role: 'guru', is_active: true }
+                                // - atau tanpa is_active (fallback: tetap hitung)
+                                if (r?.pivot?.is_active !== undefined) return !!r.pivot.is_active;
+                                if (r?.is_active !== undefined) return !!r.is_active;
+
+                                return true;
+                            });
+                        }).length
+                        : 0;
                 }
 
                 // load initial trend data for admin

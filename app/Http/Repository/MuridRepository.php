@@ -8,10 +8,16 @@ use Illuminate\Support\Facades\DB;
 
 class MuridRepository
 {
+    public function findAll(): Collection
+    {
+        return Murid::query()->orderByDesc('created_at')->get();
+    }
+
     public function findById(int $id): ?Murid
     {
         return Murid::query()->where('id_murid', $id)->first();
     }
+
 
     public function findByOrangTua(int $orangTuaId): Collection
     {

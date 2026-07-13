@@ -156,12 +156,7 @@
         </div>
     </template>
 
-    {{-- ── LOGOUT ───────────────────────────────────────────── --}}
-    <button @click="logout()"
-            class="w-full py-3.5 rounded-full font-semibold text-white text-sm transition-opacity hover:opacity-85"
-            style="background:#C87CC8">
-        Logout
-    </button>
+
 
     {{-- Modal Edit Anak --}}
     <div x-show="showEditAnak" class="fixed inset-0 z-40 flex items-center justify-center p-4">

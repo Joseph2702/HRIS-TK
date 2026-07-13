@@ -46,11 +46,12 @@ Route::middleware('jwt.auth')->group(function () {
     // Kelas (Admin only untuk CRUD, semua bisa lihat)
     Route::get('kelas', [KelasController::class, 'index']);
     Route::get('kelas/{id}', [KelasController::class, 'show']);
-    Route::post('kelas', [KelasController::class, 'store'])->middleware('role:admin');
-    Route::put('kelas/{id}', [KelasController::class, 'update'])->middleware('role:admin');
-    Route::delete('kelas/{id}', [KelasController::class, 'destroy'])->middleware('role:admin');
+    Route::post('kelas', [KelasController::class, 'store'])->middleware('permission:kelas.create');
+    Route::put('kelas/{id}', [KelasController::class, 'update'])->middleware('permission:kelas.create');
+    Route::delete('kelas/{id}', [KelasController::class, 'destroy'])->middleware('permission:kelas.delete');
     Route::get('kelas/{id}/jadwal', [KelasController::class, 'jadwal']);
-    Route::post('kelas/{id}/jadwal', [KelasController::class, 'tambahJadwal'])->middleware('role:admin');
+    Route::post('kelas/{id}/jadwal', [KelasController::class, 'tambahJadwal'])->middleware('permission:kelas.create');
+
 
     // Presensi
     Route::get('jadwal/{jadwalId}/presensi', [PresensiController::class, 'byJadwal']);
