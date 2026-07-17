@@ -164,11 +164,23 @@ function rolesPage() {
             this.savingRole = role.id_role;
             const r = await api.post(`/roles/${role.id_role}/permissions`, { permission_ids: role.permissionIds || [] });
             this.savingRole = null;
+
             if (r?.ok) {
                 Alpine.store('notif').success('Akses role berhasil diperbarui');
                 const updated = r.data.data;
                 role.permissions = updated.permissions || [];
                 role.permissionIds = (role.permissions || []).map(p => p.id_permission);
+
+                // Refresh cache user di localStorage agar UI yang bergantung pada api.getUser()
+                // (sidebar, visibility x-show, dst) ikut berubah tanpa reload.
+                try {
+                    const me = await api.get('/auth/me');
+                    if (me?.ok && me.data?.data) {
+                        api.setUser(me.data.data);
+                    }
+                } catch (e) {
+                    // ignore
+                }
             } else {
                 Alpine.store('notif').error(r?.data?.message || 'Gagal memperbarui akses');
             }
