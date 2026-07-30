@@ -17,7 +17,7 @@ class LaporanKegiatanController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
         $muridId = $request->query('murid_id');
 
-        return ApiResponse::success($this->service->getAll($user, $muridId ? intval($muridId) : null));
+        return ApiResponse::success($this->service->getAll($user, $muridId ? $muridId : null));
     }
 
     public function show(int $id): JsonResponse
@@ -83,7 +83,7 @@ class LaporanKegiatanController extends Controller
     {
         $user = JWTAuth::parseToken()->authenticate();
         $klasId = $request->query('kelas_id') ? intval($request->query('kelas_id')) : null;
-        $muridId = $request->query('murid_id') ? intval($request->query('murid_id')) : null;
+        $muridId = $request->query('murid_id') ? $request->query('murid_id') : null;
         $fromDate = $request->query('from');
         $toDate = $request->query('to');
 

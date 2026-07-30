@@ -26,6 +26,7 @@ class Appointment extends Model
     protected function casts(): array
     {
         return [
+            'id_murid' => 'string',
             'from_date' => 'date',
             'to_date' => 'date',
             'created_at' => 'datetime',

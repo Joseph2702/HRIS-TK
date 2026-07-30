@@ -68,7 +68,7 @@ Route::middleware('jwt.auth')->group(function () {
     Route::delete('laporan/{id}', [LaporanKegiatanController::class, 'destroy'])->middleware('role:admin,guru');
     Route::post('laporan/{id}/balas', [LaporanKegiatanController::class, 'balas']);
     Route::get('laporan/trend/data', [LaporanKegiatanController::class, 'trend']);
-    Route::delete('balasan/{id}', [BalasanLaporanController::class, 'destroy'])->middleware('role:admin,guru');
+    Route::delete('balasan/{id}', [BalasanLaporanController::class, 'destroy'])->middleware('role:admin,guru,orang_tua');
 
     // Konsultasi / Appointments
     Route::get('appointments', [\App\Http\Controllers\AppointmentsController::class, 'index']);

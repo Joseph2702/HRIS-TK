@@ -30,7 +30,7 @@ class MuridService
         return $this->repo->findAll();
     }
 
-    public function getById(User $user, int $id): Murid
+    public function getById(User $user, string $id): Murid
     {
         $murid = $this->repo->findById($id);
         if (! $murid) {
@@ -66,7 +66,7 @@ class MuridService
         return $this->repo->create($data);
     }
 
-    public function update(User $user, int $id, array $data, ?UploadedFile $foto = null): Murid
+    public function update(User $user, string $id, array $data, ?UploadedFile $foto = null): Murid
     {
         $murid = $this->getById($user, $id);
 
@@ -80,7 +80,7 @@ class MuridService
         return $this->repo->update($murid, $data);
     }
 
-    public function delete(User $user, int $id): void
+    public function delete(User $user, string $id): void
     {
         $murid = $this->getById($user, $id);
 
@@ -91,7 +91,7 @@ class MuridService
         $this->repo->delete($murid);
     }
 
-    public function assignKelas(int $id, int $kelasId): Murid
+    public function assignKelas(string $id, int $kelasId): Murid
     {
         $murid = $this->repo->findById($id);
         if (! $murid) {

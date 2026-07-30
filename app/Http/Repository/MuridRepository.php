@@ -13,11 +13,18 @@ class MuridRepository
         return Murid::query()->orderByDesc('created_at')->get();
     }
 
-    public function findById(int $id): ?Murid
+    public function findById(string $id): ?Murid
     {
         return Murid::query()->where('id_murid', $id)->first();
     }
 
+    public function findByKelas(int $kelasId): Collection
+    {
+        return Murid::query()
+            ->where('id_kelas', $kelasId)
+            ->orderBy('nama_murid')
+            ->get();
+    }
 
     public function findByOrangTua(int $orangTuaId): Collection
     {
@@ -31,6 +38,23 @@ class MuridRepository
             ->where('status_murid', 'aktif')
             ->orderByDesc('created_at')
             ->first();
+    }
+
+    public function getNextCounterForYear(string $year): int
+    {
+        $last = DB::table('murid')
+            ->where('id_murid', 'like', $year . '-%')
+            ->orderBy('id_murid', 'desc')
+            ->value('id_murid');
+
+        if (! $last) {
+            return 1;
+        }
+
+        $parts = explode('-', $last);
+        $counter = isset($parts[1]) ? (int) $parts[1] : 0;
+
+        return $counter + 1;
     }
 }
 

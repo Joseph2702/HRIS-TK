@@ -15,6 +15,7 @@ class LaporanKegiatan extends Model
     protected function casts(): array
     {
         return [
+            'id_murid' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

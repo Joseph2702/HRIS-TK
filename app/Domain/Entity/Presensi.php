@@ -18,6 +18,7 @@ class Presensi extends Model
     protected function casts(): array
     {
         return [
+            'id_murid' => 'string',
             'status_kehadiran' => StatusKehadiran::class,
             'created_at' => 'datetime',
             'updated_at' => 'datetime',

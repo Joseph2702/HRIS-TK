@@ -79,7 +79,7 @@ class PresensiService
         return $this->repo->historyByKelas($kelasId, $perPage);
     }
 
-    public function getByMurid(int $muridId, int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
+    public function getByMurid(string $muridId, int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
     {
         return $this->repo->findByMurid($muridId, $perPage);
     }

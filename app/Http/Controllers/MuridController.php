@@ -19,7 +19,7 @@ class MuridController extends Controller
         return ApiResponse::success($this->service->getAll($user));
     }
 
-    public function show(int $id): JsonResponse
+    public function show(string $id): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
 
@@ -46,7 +46,7 @@ class MuridController extends Controller
         return ApiResponse::created($murid, 'Profil murid berhasil ditambahkan');
     }
 
-    public function assignKelas(Request $request, int $id): JsonResponse
+    public function assignKelas(Request $request, string $id): JsonResponse
     {
         $request->validate([
             'id_kelas' => 'required|integer|exists:kelas,id_kelas',
@@ -57,7 +57,7 @@ class MuridController extends Controller
         return ApiResponse::success($murid, 'Murid berhasil ditambahkan ke kelas');
     }
 
-    public function update(Request $request, int $id): JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
         $request->validate([
             'nama_murid' => 'sometimes|string|max:100',
@@ -79,7 +79,7 @@ class MuridController extends Controller
         return ApiResponse::success($murid, 'Profil murid berhasil diperbarui');
     }
 
-    public function destroy(int $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         $user = JWTAuth::parseToken()->authenticate();
         $this->service->delete($user, $id);

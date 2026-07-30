@@ -103,10 +103,15 @@ class DatabaseSeeder extends Seeder
         $muridEntities = [];
         foreach ($muridData as $i => $md) {
             $ort = $ortEntities[$i % count($ortEntities)];
+            $year = '2025';
+            $counter = $i + 1;
+            $idMurid = $year . '-' . str_pad($counter, 3, '0', STR_PAD_LEFT);
             $muridEntities[] = Murid::firstOrCreate(
-                ['nama_murid' => $md[0], 'id_orang_tua' => $ort->id_orang_tua],
+                ['id_murid' => $idMurid],
                 [
+                    'id_orang_tua' => $ort->id_orang_tua,
                     'id_kelas'      => $md[3]->id_kelas,
+                    'nama_murid'    => $md[0],
                     'jenis_kelamin' => $md[1],
                     'tanggal_lahir' => $md[2],
                     'status_murid'  => 'aktif',

@@ -208,7 +208,7 @@ function laporanMurid() {
 
             this.saving = true;
             const payload = {
-                id_murid:     parseInt(this.muridId),
+                id_murid:     this.muridId,
                 id_jadwal:    this.jadwalId ? parseInt(this.jadwalId) : null,
                 judul_laporan: this.form.judul_laporan,
                 isi_laporan:  this.form.isi_laporan,

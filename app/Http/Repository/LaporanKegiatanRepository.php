@@ -20,7 +20,7 @@ class LaporanKegiatanRepository
             ->find($id);
     }
 
-    public function findByMurid(int $muridId, int $perPage = 15): LengthAwarePaginator
+    public function findByMurid(string $muridId, int $perPage = 15): LengthAwarePaginator
     {
         return LaporanKegiatan::with(['guru.user', 'jadwal.kelas', 'balasan'])
             ->where('id_murid', $muridId)
@@ -28,7 +28,7 @@ class LaporanKegiatanRepository
             ->paginate($perPage);
     }
 
-    public function findByOrangTua(int $orangTuaId, int $perPage = 15, ?int $muridId = null): LengthAwarePaginator
+    public function findByOrangTua(int $orangTuaId, int $perPage = 15, ?string $muridId = null): LengthAwarePaginator
     {
         $query = LaporanKegiatan::with(['murid', 'guru.user', 'jadwal.kelas', 'balasan'])
             ->whereHas('murid', function ($q) use ($orangTuaId, $muridId) {
@@ -60,7 +60,7 @@ class LaporanKegiatanRepository
         $laporan->delete();
     }
 
-    public function aggregateByDate(?int $klasId = null, ?int $muridId = null, ?string $fromDate = null, ?string $toDate = null): array
+    public function aggregateByDate(?int $klasId = null, ?string $muridId = null, ?string $fromDate = null, ?string $toDate = null): array
     {
         return $this->aggregateByDateForMuridIds($klasId, $muridId ? [$muridId] : null, $fromDate, $toDate);
     }

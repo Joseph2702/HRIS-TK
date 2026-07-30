@@ -23,7 +23,7 @@ class LaporanKegiatanService
         private NotifikasiRepository      $notifRepo,
     ) {}
 
-    public function getAll(User $user, ?int $muridId = null): \Illuminate\Pagination\LengthAwarePaginator
+    public function getAll(User $user, ?string $muridId = null): \Illuminate\Pagination\LengthAwarePaginator
     {
         if ($user->hasRole('orang_tua')) {
             $orangTua = $this->orangTuaRepo->findByUserId($user->id_user);
@@ -163,7 +163,7 @@ class LaporanKegiatanService
         return $balasan;
     }
 
-    public function getTrendData(User $user, ?int $klasId = null, ?int $muridId = null, ?string $fromDate = null, ?string $toDate = null): array
+    public function getTrendData(User $user, ?int $klasId = null, ?string $muridId = null, ?string $fromDate = null, ?string $toDate = null): array
     {
         // For parent: can only see their own child's data
         if ($user->hasRole('orang_tua')) {

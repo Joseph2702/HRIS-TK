@@ -15,7 +15,7 @@ class PresensiRepository
             ->get();
     }
 
-    public function findByMurid(int $muridId, int $perPage = 15): LengthAwarePaginator
+    public function findByMurid(string $muridId, int $perPage = 15): LengthAwarePaginator
     {
         return Presensi::with(['jadwal.kelas', 'jadwal.guru.user'])
             ->where('id_murid', $muridId)
@@ -23,7 +23,7 @@ class PresensiRepository
             ->paginate($perPage);
     }
 
-    public function upsert(int $jadwalId, int $muridId, array $data): Presensi
+    public function upsert(int $jadwalId, string $muridId, array $data): Presensi
     {
         return Presensi::updateOrCreate(
             ['id_jadwal' => $jadwalId, 'id_murid' => $muridId],
@@ -31,7 +31,7 @@ class PresensiRepository
         );
     }
 
-    public function findOne(int $jadwalId, int $muridId): ?Presensi
+    public function findOne(int $jadwalId, string $muridId): ?Presensi
     {
         return Presensi::where('id_jadwal', $jadwalId)
             ->where('id_murid', $muridId)

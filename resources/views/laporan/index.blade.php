@@ -129,9 +129,22 @@
                         <p class="text-sm text-gray-400">Belum ada balasan</p>
                     </template>
                     <template x-for="b in detail?.balasan||[]" :key="b.id_balasan">
-                        <div class="rounded-xl p-3" style="background:rgba(194,223,244,0.25)">
-                            <p class="text-xs font-semibold text-gray-700" x-text="b.user?.nama"></p>
-                            <p class="text-sm text-gray-600 mt-0.5" x-text="b.isi_balasan"></p>
+                        <div class="rounded-xl p-3 relative group" style="background:rgba(194,223,244,0.25)">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex-1">
+                                    <p class="text-xs font-semibold text-gray-700" x-text="b.user?.nama"></p>
+                                    <p class="text-sm text-gray-600 mt-0.5" x-text="b.isi_balasan"></p>
+                                    <p class="text-[10px] text-gray-400 mt-1" x-text="formatDateTime(b.created_at)"></p>
+                                </div>
+                                {{-- Tombol hapus balasan --}}
+                                <template x-if="canDeleteBalasan(b)">
+                                    <button @click="hapusBalasan(b)" class="shrink-0 text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus komentar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </template>
+                            </div>
                         </div>
                     </template>
                 </div>
@@ -211,6 +224,36 @@ function laporanPage() {
             Alpine.store('notif').success('Laporan berhasil dihapus'); await this.init();
         },
         formatDate(dt){ return dt?new Date(dt).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}):'-'; },
+        formatDateTime(dt){ return dt?new Date(dt).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'-'; },
+
+        // ── Hapus Balasan ─────────────────────────────────────
+        canDeleteBalasan(b) {
+            // Admin & Guru bisa hapus semua balasan
+            if ((user.roles||[]).some(r=>['admin','guru'].includes(r))) return true;
+
+            // Orang tua: hanya bisa hapus komentar sendiri dalam 24 jam
+            if ((user.roles||[]).includes('orang_tua')) {
+                if (b.id_user !== user.id_user) return false;
+                if (!b.created_at) return false;
+                const now = new Date();
+                const created = new Date(b.created_at);
+                const diffHours = (now - created) / (1000 * 60 * 60);
+                return diffHours < 24;
+            }
+
+            return false;
+        },
+
+        async hapusBalasan(b) {
+            if (!confirm('Hapus komentar ini?')) return;
+            const r = await api.del(`/balasan/${b.id_balasan}`);
+            if (r?.ok) {
+                Alpine.store('notif').success('Komentar berhasil dihapus');
+                await this.viewDetail(this.detail);
+            } else {
+                Alpine.store('notif').error(r?.data?.message || 'Gagal menghapus komentar');
+            }
+        },
     };
 }
 </script>

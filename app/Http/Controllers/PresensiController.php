@@ -54,7 +54,7 @@ class PresensiController extends Controller
         return ApiResponse::success($data);
     }
 
-    public function byMurid(int $muridId): JsonResponse
+    public function byMurid(string $muridId): JsonResponse
     {
         $data = $this->service->getByMurid($muridId);
 
